@@ -1495,6 +1495,74 @@ async function submitSuggestion(name, message) {
   }
 }
 
+/* ---------------------------------------------------------------------------
+   Live species images — looked up from Wikipedia by botanical name so every
+   image is a real, verified photo rather than a hand-typed link. Results
+   are cached in memory so each species is only fetched once per visit.
+   ------------------------------------------------------------------------- */
+const wikiImageCache = {};
+
+function useWikiImage(title) {
+  const [state, setState] = useState(() => {
+    if (title && wikiImageCache[title] !== undefined) {
+      return { url: wikiImageCache[title], status: wikiImageCache[title] ? "loaded" : "failed" };
+    }
+    return { url: null, status: "loading" };
+  });
+
+  useEffect(() => {
+    if (!title) { setState({ url: null, status: "failed" }); return; }
+    if (wikiImageCache[title] !== undefined) {
+      setState({ url: wikiImageCache[title], status: wikiImageCache[title] ? "loaded" : "failed" });
+      return;
+    }
+    let cancelled = false;
+    const apiUrl = "https://en.wikipedia.org/w/api.php?action=query&titles=" +
+      encodeURIComponent(title) + "&prop=pageimages&format=json&pithumbsize=640&origin=*";
+    fetch(apiUrl)
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled) return;
+        const pages = data && data.query && data.query.pages;
+        const page = pages && Object.values(pages)[0];
+        const src = page && page.thumbnail && page.thumbnail.source;
+        wikiImageCache[title] = src || null;
+        setState({ url: src || null, status: src ? "loaded" : "failed" });
+      })
+      .catch(() => {
+        if (cancelled) return;
+        wikiImageCache[title] = null;
+        setState({ url: null, status: "failed" });
+      });
+    return () => { cancelled = true; };
+  }, [title]);
+
+  return state;
+}
+
+function SpeciesImage({ title, alt, style }) {
+  const { url, status } = useWikiImage(title);
+  if (status === "loaded" && url) {
+    return <img src={url} alt={alt} style={style} loading="lazy" />;
+  }
+  return (
+    <div style={{
+      ...style,
+      background: "#E3DCC9",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      textAlign: "center",
+      padding: "8px",
+      fontFamily: "Inter, sans-serif",
+      fontSize: "0.72rem",
+      color: "#8A9880",
+    }}>
+      {status === "loading" ? "Loading photo…" : "Photo not available"}
+    </div>
+  );
+}
+
 function OriginTag({ origin }) {
   const isNative = (origin || "").toLowerCase() === "native";
   return (
@@ -1570,26 +1638,16 @@ function HomePage({ speciesCount, setPage }) {
     <div>
       <section style={{ position: "relative", minHeight: "78vh", display: "flex", alignItems: "flex-end", overflow: "hidden" }}>
         <img src={CONFIG.HERO_IMAGE} alt="Forest Research Institute main building, Dehradun" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(27,43,30,0) 0%, rgba(20,28,18,0.05) 45%, rgba(15,20,13,0.55) 100%)" }} />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(246,242,233,0) 0%, rgba(246,242,233,0.35) 45%, rgba(246,242,233,0.88) 100%)" }} />
         <div style={{ position: "relative", maxWidth: "1180px", margin: "0 auto", padding: "0 24px 56px", width: "100%" }}>
-          <div style={{
-            background: "rgba(246,242,233,0.93)",
-            backdropFilter: "blur(3px)",
-            borderRadius: "10px",
-            padding: "22px 26px",
-            marginBottom: "20px",
-            maxWidth: "62ch",
-            boxShadow: "0 10px 30px rgba(20,28,18,0.18)",
-          }}>
-            <p style={{ fontFamily: "Inter, sans-serif", fontSize: "0.85rem", letterSpacing: "0.04em", color: "#6B7A63", marginBottom: "10px" }}>Forest Research Institute, Dehradun</p>
-            <h1 style={{ fontFamily: "Lora, serif", fontWeight: 600, fontSize: "clamp(2rem, 4.6vw, 3.1rem)", lineHeight: 1.14, color: "#1B2B1E", margin: "0 0 14px" }}>A digital record of the trees that shape this campus</h1>
-            <p style={{ fontFamily: "Inter, sans-serif", fontSize: "1.02rem", color: "#3A4739", lineHeight: 1.6, margin: 0 }}>
-              The ICFRE-FRI campus holds one of India's most botanically significant tree collections — native forest species alongside exotic introductions planted over more than a century. This atlas documents each one: where it grows, how to identify it, and why it matters.
-            </p>
-          </div>
+          <p style={{ fontFamily: "Inter, sans-serif", fontSize: "0.85rem", letterSpacing: "0.04em", color: "#1B2B1E", marginBottom: "10px" }}>Forest Research Institute, Dehradun</p>
+          <h1 style={{ fontFamily: "Lora, serif", fontWeight: 600, fontSize: "clamp(2rem, 4.6vw, 3.1rem)", lineHeight: 1.14, color: "#1B2B1E", maxWidth: "16ch", margin: "0 0 18px" }}>A digital record of the trees that shape this campus</h1>
+          <p style={{ fontFamily: "Inter, sans-serif", fontSize: "1.02rem", maxWidth: "58ch", color: "#1B2B1E", lineHeight: 1.6, marginBottom: "28px" }}>
+            The ICFRE-FRI campus holds one of India's most botanically significant tree collections — native forest species alongside exotic introductions planted over more than a century. This atlas documents each one: where it grows, how to identify it, and why it matters.
+          </p>
           <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
             <button onClick={() => setPage("explore")} style={{ fontFamily: "Inter, sans-serif", fontWeight: 600, fontSize: "0.95rem", padding: "13px 24px", borderRadius: "5px", border: "none", cursor: "pointer", background: "#4A6741", color: "#F6F2E9" }}>Explore Trees</button>
-            <button onClick={() => setPage("map")} style={{ fontFamily: "Inter, sans-serif", fontWeight: 600, fontSize: "0.95rem", padding: "13px 24px", borderRadius: "5px", border: "1px solid #F6F2E9", cursor: "pointer", background: "rgba(27,43,30,0.35)", color: "#F6F2E9" }}>View Species Map</button>
+            <button onClick={() => setPage("map")} style={{ fontFamily: "Inter, sans-serif", fontWeight: 600, fontSize: "0.95rem", padding: "13px 24px", borderRadius: "5px", border: "1px solid #4A6741", cursor: "pointer", background: "transparent", color: "#1B2B1E" }}>View Species Map</button>
           </div>
         </div>
       </section>
@@ -1694,8 +1752,8 @@ function ExplorePage({ species, onOpenSpecies }) {
               <button key={s.id} onClick={() => onOpenSpecies(s)} style={{ textAlign: "left", cursor: "pointer", background: "#FFFDF7", border: "1px solid #E3DCC9", borderRadius: "8px", overflow: "hidden", padding: 0, display: "flex", flexDirection: "column", transition: "transform 0.15s ease, box-shadow 0.15s ease" }}
                 onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = "0 10px 24px rgba(27,43,30,0.1)"; }}
                 onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
-                <div style={{ height: "150px", background: "#E3DCC9", overflow: "hidden" }}>
-                  {f.CoverImageURL && <img src={f.CoverImageURL} alt={f.CommonName} style={{ width: "100%", height: "100%", objectFit: "cover" }} loading="lazy" />}
+                <div style={{ height: "150px", overflow: "hidden" }}>
+                  <SpeciesImage title={f.BotanicalName} alt={f.CommonName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 </div>
                 <div style={{ padding: "14px 16px 18px" }}>
                   <div style={{ marginBottom: "8px" }}><OriginTag origin={f.Origin} /></div>
@@ -1714,7 +1772,6 @@ function ExplorePage({ species, onOpenSpecies }) {
 
 function SpeciesDetailPage({ record, onBack, onViewOnMap }) {
   const f = record.fields;
-  const gallery = (f.GalleryImageURLs || f.CoverImageURL || "").split(",").map((s) => s.trim()).filter(Boolean);
   const sectionStyle = { marginBottom: "28px" };
   const labelStyle = { fontFamily: "Inter, sans-serif", fontSize: "0.72rem", letterSpacing: "0.04em", color: "#8A9880", marginBottom: "6px", fontWeight: 600 };
   const bodyStyle = { fontFamily: "Inter, sans-serif", fontSize: "0.96rem", color: "#2E3B28", lineHeight: 1.65 };
@@ -1726,13 +1783,13 @@ function SpeciesDetailPage({ record, onBack, onViewOnMap }) {
       <h1 style={{ fontFamily: "Lora, serif", fontSize: "2.2rem", color: "#1B2B1E", margin: "8px 0 2px" }}>{f.CommonName}</h1>
       <p style={{ fontFamily: "Inter, sans-serif", fontStyle: "italic", fontSize: "1.05rem", color: "#7A8873", marginBottom: "24px" }}>{f.BotanicalName} · {f.Family}</p>
 
-      {gallery.length > 0 && (
-        <div style={{ display: "grid", gridTemplateColumns: gallery.length === 1 ? "1fr" : "repeat(auto-fit, minmax(180px, 1fr))", gap: "10px", marginBottom: "36px" }}>
-          {gallery.slice(0, 5).map((url, i) => (
-            <img key={i} src={url} alt={`${f.CommonName} — image ${i + 1}`} style={{ width: "100%", height: gallery.length === 1 ? "380px" : "180px", objectFit: "cover", borderRadius: "6px", border: "1px solid #E3DCC9" }} loading="lazy" />
-          ))}
-        </div>
-      )}
+      <div style={{ marginBottom: "36px" }}>
+        <SpeciesImage
+          title={f.BotanicalName}
+          alt={f.CommonName}
+          style={{ width: "100%", height: "380px", objectFit: "cover", borderRadius: "6px", border: "1px solid #E3DCC9" }}
+        />
+      </div>
 
       <button onClick={() => onViewOnMap(record)} style={{ fontFamily: "Inter, sans-serif", fontWeight: 600, fontSize: "0.9rem", padding: "12px 22px", borderRadius: "5px", border: "none", cursor: "pointer", background: "#4A6741", color: "#F6F2E9", marginBottom: "40px" }}>
         View location on campus map
@@ -1842,7 +1899,9 @@ function MapPage({ species, focusedId }) {
         <div style={{ border: "1px solid #E3DCC9", borderRadius: "10px", padding: "20px", background: "#FFFDF7", minHeight: "200px" }}>
           {selected ? (
             <>
-              {selected.fields.CoverImageURL && <img src={selected.fields.CoverImageURL} alt={selected.fields.CommonName} style={{ width: "100%", height: "120px", objectFit: "cover", borderRadius: "6px", marginBottom: "12px" }} />}
+              <div style={{ marginBottom: "12px" }}>
+                <SpeciesImage title={selected.fields.BotanicalName} alt={selected.fields.CommonName} style={{ width: "100%", height: "120px", objectFit: "cover", borderRadius: "6px" }} />
+              </div>
               <div style={{ marginBottom: "6px" }}><OriginTag origin={selected.fields.Origin} /></div>
               <h3 style={{ fontFamily: "Lora, serif", fontSize: "1.1rem", color: "#1B2B1E", margin: "4px 0 2px" }}>{selected.fields.CommonName}</h3>
               <p style={{ fontFamily: "Inter, sans-serif", fontStyle: "italic", fontSize: "0.85rem", color: "#7A8873", marginBottom: "10px" }}>{selected.fields.BotanicalName}</p>
