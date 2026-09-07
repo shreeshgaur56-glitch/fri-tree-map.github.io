@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -51,1430 +52,77 @@ const CONFIG = {
   SUGGESTION_EMAIL: "gaursaab66@gmail.com",
   FORMSPREE_ENDPOINT: "https://formspree.io/f/mdeolqwp",
   HERO_IMAGE: "hero.jpg",
+  SPECIES_CSV_PATH: "species.csv",
 };
 
-const SPECIES_DATA = [
-  {
-    "id": "s1",
-    "fields": {
-      "CommonName": "Sal",
-      "BotanicalName": "Shorea robusta",
-      "Family": "Dipterocarpaceae",
-      "Origin": "Native",
-      "UseType": "Timber",
-      "Description": "A large deciduous tree native to India, Bangladesh, Nepal, Tibet and the Himalayan foothills, growing up to 40 m tall. Historically one of the dominant forest species of the Indian subcontinent and a major timber species.",
-      "Phenology": "Deciduous; flowering generally occurs in spring (roughly Feb-Apr in most regions), with the start-of-season for sal forests in India ranging from mid-May to late July depending on forest moisture type.",
-      "Taxonomy": "Kingdom Plantae; Order Malvales; Family Dipterocarpaceae; Genus Shorea; Species S. robusta.",
-      "EcologicalUses": "Forms the dominant canopy of sal forest ecosystems across the Himalayan foothills and central India; long taproot aids soil stabilisation; thick bark provides fire resistance.",
-      "EthnobotanicalUses": "Wood used for construction and door/window frames; dried leaves widely stitched into leaf plates (patravali) in India and Nepal; bark, leaves, resin and seed oil used in traditional/Ayurvedic medicine for wound healing and digestive complaints.",
-      "Latitude": 30.3398,
-      "Longitude": 78.0349,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Shorea_robusta_Gaertn.jpg/640px-Shorea_robusta_Gaertn.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Shorea_robusta_Gaertn.jpg/640px-Shorea_robusta_Gaertn.jpg",
-      "SourceNote": "Verified against Wikipedia (Shorea robusta), World Agroforestry Centre species database, and PharmEasy Ayurveda reference (accessed 2026)."
-    }
-  },
-  {
-    "id": "s2",
-    "fields": {
-      "CommonName": "Sheesham (North Indian Rosewood)",
-      "BotanicalName": "Dalbergia sissoo",
-      "Family": "Fabaceae",
-      "Origin": "Native",
-      "UseType": "Timber",
-      "Description": "A fast-growing, hardy deciduous tree native to the Indian subcontinent and southern Iran, growing up to 25 m tall with a light crown and often crooked trunk. After teak, it is India's most important cultivated timber tree.",
-      "Phenology": "Flowers March-April, small and fragrant, yellowish-white to pink; flat papery seed pods follow and mature later in the year.",
-      "Taxonomy": "Kingdom Plantae; Order Fabales; Family Fabaceae; Subfamily Faboideae; Genus Dalbergia; Species D. sissoo.",
-      "EcologicalUses": "Nitrogen-fixing legume that improves soil fertility; widely used in agroforestry, shelterbelts and canal/roadside plantings; larval food plant of the black rajah butterfly (Charaxes solon).",
-      "EthnobotanicalUses": "Premier cabinetry and furniture timber in South Asia, also used for plywood, musical instruments, flooring and boats; seed oil and powdered wood used traditionally for skin ailments; bark and fruit used in traditional remedies for throat and digestive complaints.",
-      "Latitude": 30.3402,
-      "Longitude": 78.0356,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Dalbergia_sissoo_-_Kolkata_2011-07-08_9938.JPG/640px-Dalbergia_sissoo_-_Kolkata_2011-07-08_9938.JPG",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Dalbergia_sissoo_-_Kolkata_2011-07-08_9938.JPG/640px-Dalbergia_sissoo_-_Kolkata_2011-07-08_9938.JPG",
-      "SourceNote": "Verified against Wikipedia (Dalbergia sissoo) and Jammu University botanical fact sheet (accessed 2026)."
-    }
-  },
-  {
-    "id": "s3",
-    "fields": {
-      "CommonName": "Teak",
-      "BotanicalName": "Tectona grandis",
-      "Family": "Lamiaceae",
-      "Origin": "Native",
-      "UseType": "Timber",
-      "Description": "A large deciduous hardwood tree native to south and southeast Asia, mainly India, Bangladesh, Myanmar, Thailand, Indonesia and Sri Lanka, reaching up to 40 m tall. Source of one of the world's most valuable timbers.",
-      "Phenology": "Fragrant white flowers borne in large terminal panicles from June to August; globose fruits (1.2-1.8 cm) develop September to December.",
-      "Taxonomy": "Kingdom Plantae; Order Lamiales; Family Lamiaceae; Genus Tectona; Species T. grandis.",
-      "EcologicalUses": "Component of monsoon forest vegetation; molecular studies identify India as one of two centres of genetic origin for the species.",
-      "EthnobotanicalUses": "Highly durable, water-resistant timber used for boat-building, exterior construction, veneer, furniture and carving; the name 'teak' derives via Malayalam/Tamil/Sanskrit roots reflecting its long history of use on the subcontinent.",
-      "Latitude": 30.3385,
-      "Longitude": 78.0342,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Tectona_grandis_kz02.jpg/640px-Tectona_grandis_kz02.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Tectona_grandis_kz02.jpg/640px-Tectona_grandis_kz02.jpg",
-      "SourceNote": "Verified against Wikipedia (Teak / Tectona) (accessed 2026)."
-    }
-  },
-  {
-    "id": "s4",
-    "fields": {
-      "CommonName": "Neem",
-      "BotanicalName": "Azadirachta indica",
-      "Family": "Meliaceae",
-      "Origin": "Native",
-      "UseType": "Medicinal",
-      "Description": "An evergreen to semi-deciduous tree native to the Indian subcontinent, widely regarded as one of the most ethnobotanically important trees in South Asia and a hardy, drought-tolerant shade species.",
-      "Phenology": "New leaves and flowers appear together in spring; small white fragrant flowers are followed by olive-like fruits that ripen by early summer.",
-      "Taxonomy": "Kingdom Plantae; Order Sapindales; Family Meliaceae; Genus Azadirachta; Species A. indica.",
-      "EcologicalUses": "Hardy, drought-tolerant tree that provides shade and soil stabilisation; seeds and leaves are the source of natural biopesticide compounds used in pest management.",
-      "EthnobotanicalUses": "Bark, leaves, seeds and oil are used extensively in Ayurvedic medicine; neem oil is a well-documented natural insecticide; twigs traditionally used as a dental cleaning aid across South Asia.",
-      "Latitude": 30.3391,
-      "Longitude": 78.0361,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Azadirachta_indica_flowers_leaves.jpg/640px-Azadirachta_indica_flowers_leaves.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Azadirachta_indica_flowers_leaves.jpg/640px-Azadirachta_indica_flowers_leaves.jpg",
-      "SourceNote": "Verified against Wikipedia (Azadirachta indica) and USDA/ICRAF Agroforestree Database (accessed 2026)."
-    }
-  },
-  {
-    "id": "s5",
-    "fields": {
-      "CommonName": "Peepal (Sacred Fig)",
-      "BotanicalName": "Ficus religiosa",
-      "Family": "Moraceae",
-      "Origin": "Native",
-      "UseType": "Ornamental/Religious",
-      "Description": "A large deciduous to semi-evergreen fig tree native to the Indian subcontinent and southeast Asia, venerated in Hinduism, Buddhism and Jainism, and one of the most culturally significant trees in South Asia.",
-      "Phenology": "Leaves are heart-shaped with a distinctive drawn-out tip; the tree sheds leaves briefly in spring before flushing new growth; fig-like fruit (syconia) develop through the year and are eaten by birds and bats.",
-      "Taxonomy": "Kingdom Plantae; Order Rosales; Family Moraceae; Genus Ficus; Species F. religiosa.",
-      "EcologicalUses": "Keystone species in many South Asian ecosystems, its fruit providing year-round food for birds, bats and other wildlife; often grows epiphytically on other structures.",
-      "EthnobotanicalUses": "Sacred in Hinduism, Buddhism (the tree under which the Buddha attained enlightenment is a sacred fig) and Jainism; bark, leaves and fruit used in traditional medicine for various ailments including diabetes and skin conditions.",
-      "Latitude": 30.3405,
-      "Longitude": 78.0338,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Ficus_religiosa2.jpg/640px-Ficus_religiosa2.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Ficus_religiosa2.jpg/640px-Ficus_religiosa2.jpg",
-      "SourceNote": "Verified against Wikipedia (Ficus religiosa) (accessed 2026)."
-    }
-  },
-  {
-    "id": "s6",
-    "fields": {
-      "CommonName": "Banyan",
-      "BotanicalName": "Ficus benghalensis",
-      "Family": "Moraceae",
-      "Origin": "Native",
-      "UseType": "Ornamental/Religious",
-      "Description": "India's national tree, a large evergreen fig species native to the Indian subcontinent, distinctive for producing aerial prop roots that mature into secondary trunks, allowing a single tree to spread over a vast area.",
-      "Phenology": "Largely evergreen; small fig-like fruits (syconia) are produced through much of the year and are an important food source for birds and mammals.",
-      "Taxonomy": "Kingdom Plantae; Order Rosales; Family Moraceae; Genus Ficus; Species F. benghalensis.",
-      "EcologicalUses": "Keystone fruiting species supporting large numbers of frugivorous birds and mammals; extensive canopy and root systems support unique microhabitats.",
-      "EthnobotanicalUses": "Sacred in Hinduism; commonly planted near temples and used as a communal shade tree; various plant parts used in traditional medicine for skin, dental and digestive conditions.",
-      "Latitude": 30.3411,
-      "Longitude": 78.0347,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Ficus_benghalensis_%28Big_Banyan_Tree%29.jpg/640px-Ficus_benghalensis_%28Big_Banyan_Tree%29.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Ficus_benghalensis_%28Big_Banyan_Tree%29.jpg/640px-Ficus_benghalensis_%28Big_Banyan_Tree%29.jpg",
-      "SourceNote": "Verified against Wikipedia (Ficus benghalensis) (accessed 2026)."
-    }
-  },
-  {
-    "id": "s7",
-    "fields": {
-      "CommonName": "Gulmohar (Flame Tree)",
-      "BotanicalName": "Delonix regia",
-      "Family": "Fabaceae",
-      "Origin": "Exotic",
-      "UseType": "Ornamental",
-      "Description": "A striking flowering tree originally native to Madagascar, now widely planted as an ornamental across tropical and subtropical India for its brilliant red-orange flower display.",
-      "Phenology": "Flowers profusely in the hot season, typically April to June in North India, producing large clusters of scarlet-orange blooms; long, flat woody seed pods follow and persist into winter.",
-      "Taxonomy": "Kingdom Plantae; Order Fabales; Family Fabaceae; Subfamily Caesalpinioideae; Genus Delonix; Species D. regia.",
-      "EcologicalUses": "Provides seasonal nectar resources for pollinating insects; widely used as a shade and avenue tree in urban and campus landscaping across India.",
-      "EthnobotanicalUses": "Primarily ornamental; some traditional use of bark and leaves in folk medicine, though not as extensively documented as other campus species.",
-      "Latitude": 30.3378,
-      "Longitude": 78.0365,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Gulmohar_%28Delonix_regia%29_flowers_in_Kolkata_W_IMG_3227.jpg/640px-Gulmohar_%28Delonix_regia%29_flowers_in_Kolkata_W_IMG_3227.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Gulmohar_%28Delonix_regia%29_flowers_in_Kolkata_W_IMG_3227.jpg/640px-Gulmohar_%28Delonix_regia%29_flowers_in_Kolkata_W_IMG_3227.jpg",
-      "SourceNote": "Verified against Wikipedia (Delonix regia) (accessed 2026)."
-    }
-  },
-  {
-    "id": "s8",
-    "fields": {
-      "CommonName": "Jacaranda",
-      "BotanicalName": "Jacaranda mimosifolia",
-      "Family": "Bignoniaceae",
-      "Origin": "Exotic",
-      "UseType": "Ornamental",
-      "Description": "A subtropical tree native to south-central South America (Argentina and Bolivia), widely planted in India as an ornamental avenue tree for its vivid violet-blue flower display.",
-      "Phenology": "Produces large clusters of trumpet-shaped violet-blue flowers, typically in spring before or alongside new leaf growth in North Indian conditions.",
-      "Taxonomy": "Kingdom Plantae; Order Lamiales; Family Bignoniaceae; Genus Jacaranda; Species J. mimosifolia.",
-      "EcologicalUses": "Widely planted street and campus tree valued for shade and seasonal flowering display; attracts pollinating insects during bloom.",
-      "EthnobotanicalUses": "Primarily ornamental in South Asia; in its native range, bark and leaves have limited traditional medicinal use.",
-      "Latitude": 30.3382,
-      "Longitude": 78.0353,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Jacaranda_mimosifolia1.jpg/640px-Jacaranda_mimosifolia1.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Jacaranda_mimosifolia1.jpg/640px-Jacaranda_mimosifolia1.jpg",
-      "SourceNote": "Verified against Wikipedia (Jacaranda mimosifolia) (accessed 2026)."
-    }
-  },
-  {
-    "id": "s9",
-    "fields": {
-      "CommonName": "Silver Oak",
-      "BotanicalName": "Grevillea robusta",
-      "Family": "Proteaceae",
-      "Origin": "Exotic",
-      "UseType": "Timber/Shade",
-      "Description": "An evergreen tree native to eastern Australia, widely introduced across India, especially in tea and coffee plantations, for shade and its ornamental foliage.",
-      "Phenology": "Produces distinctive one-sided golden-orange flower clusters, generally in spring; fern-like silvery-green bipinnate leaves are present year-round.",
-      "Taxonomy": "Kingdom Plantae; Order Proteales; Family Proteaceae; Genus Grevillea; Species G. robusta.",
-      "EcologicalUses": "Commonly used as a shade tree in tea, coffee and cardamom plantations across South India due to its light canopy; provides nectar for birds and insects.",
-      "EthnobotanicalUses": "Timber used for furniture, plywood and construction in its introduced range; grown ornamentally for its attractive silvery foliage.",
-      "Latitude": 30.3373,
-      "Longitude": 78.034,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Grevillea_robusta1.jpg/640px-Grevillea_robusta1.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Grevillea_robusta1.jpg/640px-Grevillea_robusta1.jpg",
-      "SourceNote": "Verified against Wikipedia (Grevillea robusta) (accessed 2026)."
-    }
-  },
-  {
-    "id": "s10",
-    "fields": {
-      "CommonName": "Amaltas (Golden Shower Tree)",
-      "BotanicalName": "Cassia fistula",
-      "Family": "Fabaceae",
-      "Origin": "Native",
-      "UseType": "Ornamental/Medicinal",
-      "Description": "A medium-sized deciduous tree native to the Indian subcontinent and southeast Asia, designated the national tree of Thailand and state flower of Kerala, known for its cascading yellow flower clusters.",
-      "Phenology": "Flowers profusely in long pendant racemes during the pre-monsoon summer months (April-June in North India); long cylindrical seed pods develop and persist afterward.",
-      "Taxonomy": "Kingdom Plantae; Order Fabales; Family Fabaceae; Subfamily Caesalpinioideae; Genus Cassia; Species C. fistula.",
-      "EcologicalUses": "Nectar source for pollinators during peak summer flowering; commonly planted as an avenue and ornamental tree across South Asia.",
-      "EthnobotanicalUses": "Pulp from the seed pods has long been used in traditional Ayurvedic and Siddha medicine as a mild laxative; bark and leaves used in various traditional preparations.",
-      "Latitude": 30.3369,
-      "Longitude": 78.0358,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/Cassia_fistula_09.JPG/640px-Cassia_fistula_09.JPG",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/Cassia_fistula_09.JPG/640px-Cassia_fistula_09.JPG",
-      "SourceNote": "Verified against Wikipedia (Cassia fistula) (accessed 2026)."
-    }
-  },
-  {
-    "id": "s11",
-    "fields": {
-      "CommonName": "Chir Pine",
-      "BotanicalName": "Pinus roxburghii",
-      "Family": "Pinaceae",
-      "Origin": "Native",
-      "UseType": "Timber/Resin",
-      "Description": "A coniferous evergreen tree native to the Himalayan foothills including Uttarakhand, forming extensive pure stands between roughly 500-2000 m elevation, and one of the principal resin-yielding pines of India.",
-      "Phenology": "Evergreen conifer; male cones release pollen in spring, with female cones taking about two years to mature and shed seed.",
-      "Taxonomy": "Kingdom Plantae; Order Pinales; Family Pinaceae; Genus Pinus; Species P. roxburghii.",
-      "EcologicalUses": "Dominant forest-forming species across much of the western Himalayan foothills, including the Doon Valley around Dehradun; adapted to fire-prone habitats with thick, insulating bark.",
-      "EthnobotanicalUses": "Major source of oleoresin (chir resin), tapped commercially for turpentine and rosin production; timber used in construction and as fuelwood.",
-      "Latitude": 30.3417,
-      "Longitude": 78.033,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Pinus_roxburghii_02.jpg/640px-Pinus_roxburghii_02.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Pinus_roxburghii_02.jpg/640px-Pinus_roxburghii_02.jpg",
-      "SourceNote": "Verified against Wikipedia (Pinus roxburghii) (accessed 2026)."
-    }
-  },
-  {
-    "id": "s12",
-    "fields": {
-      "CommonName": "Semal (Silk Cotton Tree)",
-      "BotanicalName": "Bombax ceiba",
-      "Family": "Malvaceae",
-      "Origin": "Native",
-      "UseType": "Ornamental/Fibre",
-      "Description": "A tall deciduous tree native to tropical and subtropical Asia including the Indian subcontinent, notable for its striking large red flowers and buttressed trunk studded with conical thorns when young.",
-      "Phenology": "Leafless during flowering, typically January-March in North India, when large red (occasionally orange) flowers appear before new leaves; capsule fruits release cotton-like fibre (kapok-like floss) around the seeds.",
-      "Taxonomy": "Kingdom Plantae; Order Malvales; Family Malvaceae; Genus Bombax; Species B. ceiba.",
-      "EcologicalUses": "Flowers are an important nectar source for birds (including sunbirds) and other pollinators during the otherwise resource-scarce dry season.",
-      "EthnobotanicalUses": "Silky floss from the seed pods traditionally used as stuffing for pillows and cushions; various plant parts used in traditional medicine for wound healing and other ailments.",
-      "Latitude": 30.3395,
-      "Longitude": 78.0371,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/Bombax_ceiba_flower.jpg/640px-Bombax_ceiba_flower.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/Bombax_ceiba_flower.jpg/640px-Bombax_ceiba_flower.jpg",
-      "SourceNote": "Verified against Wikipedia (Bombax ceiba) (accessed 2026)."
-    }
-  },
-  {
-    "id": "s13",
-    "fields": {
-      "CommonName": "Mango",
-      "BotanicalName": "Mangifera indica",
-      "Family": "Anacardiaceae",
-      "Origin": "Native",
-      "UseType": "Fruit",
-      "Description": "A large evergreen fruit tree native to the region between northwestern Myanmar, Bangladesh, and northeastern India, cultivated in India since ancient times and now grown in tropical and subtropical regions worldwide.",
-      "Phenology": "Red-yellow flowers appear at the end of winter and into early spring, borne in terminal panicles; fruit matures over the following months, with hundreds of cultivated varieties reported in India.",
-      "Taxonomy": "Kingdom Plantae; Order Sapindales; Family Anacardiaceae; Genus Mangifera; Species M. indica.",
-      "EcologicalUses": "Long-lived shade tree (productive life over 50 years) supporting pollinators during flowering; related to cashew and pistachio within Anacardiaceae.",
-      "EthnobotanicalUses": "India's most widely cultivated fruit tree, with approximately 500 named varieties; young leaves and bark contain mangiferin, a compound studied for pharmacological activity; fruit is a major dietary and economic crop across South Asia.",
-      "Latitude": 30.3388,
-      "Longitude": 78.0344,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Hapus_Mango.jpg/640px-Hapus_Mango.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Hapus_Mango.jpg/640px-Hapus_Mango.jpg",
-      "SourceNote": "Verified against Wikipedia (Mangifera indica) and LUMS Biodiversity database (accessed 2026)."
-    }
-  },
-  {
-    "id": "s14",
-    "fields": {
-      "CommonName": "Jamun (Java Plum)",
-      "BotanicalName": "Syzygium cumini",
-      "Family": "Myrtaceae",
-      "Origin": "Native",
-      "UseType": "Fruit",
-      "Description": "An evergreen tropical tree native to the Indian subcontinent and adjoining Southeast Asia, favoured for its fruit, timber and ornamental value, capable of living more than 100 years.",
-      "Phenology": "Fragrant small flowers appear March-April; the oblong fruit follows in May-June, changing colour from green to pink to crimson-black as it ripens.",
-      "Taxonomy": "Kingdom Plantae; Order Myrtales; Family Myrtaceae; Genus Syzygium; Species S. cumini.",
-      "EcologicalUses": "Dense shady canopy valued for ornamental and shade purposes; fruits are eaten by native birds and small mammals including jackals, civets and fruit bats.",
-      "EthnobotanicalUses": "Fruit widely eaten fresh across South Asia and used in traditional remedies, particularly associated with blood sugar management in folk medicine; water-resistant wood historically used for railway sleepers and well installations.",
-      "Latitude": 30.3406,
-      "Longitude": 78.0333,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Syzygium_cumini_fruits.jpg/640px-Syzygium_cumini_fruits.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Syzygium_cumini_fruits.jpg/640px-Syzygium_cumini_fruits.jpg",
-      "SourceNote": "Verified against Wikipedia (Syzygium cumini) and LUMS Biodiversity database (accessed 2026)."
-    }
-  },
-  {
-    "id": "s15",
-    "fields": {
-      "CommonName": "Arjun",
-      "BotanicalName": "Terminalia arjuna",
-      "Family": "Combretaceae",
-      "Origin": "Native",
-      "UseType": "Medicinal",
-      "Description": "A large deciduous tree native to India, growing to 20-25 m (occasionally taller) with a distinctive buttressed trunk and wide, drooping-branched crown, long valued as a traditional medicinal plant.",
-      "Phenology": "New leaves appear in the hot season (February-April); pale yellow flowers bloom March-June, followed by fibrous, five-winged woody fruit maturing September-November.",
-      "Taxonomy": "Kingdom Plantae; Order Myrtales; Family Combretaceae; Genus Terminalia; Species T. arjuna.",
-      "EcologicalUses": "Grows naturally along stream banks and moist places across the sub-Himalayan tract and central India, with a shallow radial root system that helps stabilise banks.",
-      "EthnobotanicalUses": "Bark is a well-known Ayurvedic cardiotonic, traditionally used to support heart health, and also used in ulcer treatment and as an astringent; commonly prepared as arjunarishta in Ayurvedic medicine.",
-      "Latitude": 30.3387,
-      "Longitude": 78.0375,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Terminalia_arjuna_flower.jpg/640px-Terminalia_arjuna_flower.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Terminalia_arjuna_flower.jpg/640px-Terminalia_arjuna_flower.jpg",
-      "SourceNote": "Verified against Wikipedia (Terminalia arjuna) and World Agroforestry Centre species database (accessed 2026)."
-    }
-  },
-  {
-    "id": "s16",
-    "fields": {
-      "CommonName": "Moringa (Drumstick Tree)",
-      "BotanicalName": "Moringa oleifera",
-      "Family": "Moringaceae",
-      "Origin": "Native",
-      "UseType": "Medicinal/Food",
-      "Description": "A fast-growing, drought-resistant tree native to the southern foothills of the Himalayas in northwestern India, now cultivated widely across South and Southeast Asia and beyond for its exceptionally versatile uses.",
-      "Phenology": "Fast-growing and often coppiced back to about a metre to keep pods within reach; produces long, slender triangular seed pods (the 'drumsticks') that are harvested immature.",
-      "Taxonomy": "Kingdom Plantae; Order Brassicales; Family Moringaceae; Genus Moringa; Species M. oleifera.",
-      "EcologicalUses": "Highly drought-tolerant and adaptable to poor soils; considered one of the most useful trees globally since nearly every part has a beneficial application.",
-      "EthnobotanicalUses": "Immature seed pods and leaves are widely eaten as vegetables across India; seeds, oil, bark and roots are used in traditional herbal medicine, and the seeds are also used for water purification.",
-      "Latitude": 30.3374,
-      "Longitude": 78.0329,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Moringa_oleifera_pods.jpg/640px-Moringa_oleifera_pods.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Moringa_oleifera_pods.jpg/640px-Moringa_oleifera_pods.jpg",
-      "SourceNote": "Verified against Wikipedia (Moringa oleifera) and Kew Plants of the World Online (accessed 2026)."
-    }
-  },
-  {
-    "id": "s17",
-    "fields": {
-      "CommonName": "Khair (Catechu Tree)",
-      "BotanicalName": "Acacia catechu",
-      "Family": "Fabaceae",
-      "Origin": "Native",
-      "UseType": "Medicinal/Industrial",
-      "Description": "A small to medium-sized thorny deciduous tree native to South and Southeast Asia including the Indian subcontinent, Myanmar, Thailand and China, historically important as the source of the catechu/cutch extract.",
-      "Phenology": "Deciduous with slender, curved thorns at the base of each leaflet-bearing petiole; small yellowish flowers borne in cylindrical spikes, followed by flat brown pods.",
-      "Taxonomy": "Kingdom Plantae; Order Fabales; Family Fabaceae (subfamily Mimosoideae); Genus Acacia/Senegalia; Species A. catechu.",
-      "EcologicalUses": "Grows naturally in mixed deciduous forests and savannas on drier, sandy soils of riverbanks and watersheds; flowers provide nectar and pollen for bees.",
-      "EthnobotanicalUses": "Heartwood extract (katha/cutch) is a key ingredient in paan chewing mixtures across South Asia and has long been used in Ayurvedic medicine as an astringent; also used historically for tanning leather and dyeing.",
-      "Latitude": 30.3369,
-      "Longitude": 78.0344,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Acacia_catechu_-_Kew.jpg/640px-Acacia_catechu_-_Kew.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Acacia_catechu_-_Kew.jpg/640px-Acacia_catechu_-_Kew.jpg",
-      "SourceNote": "Verified against World Agroforestry Centre database, LUMS Biodiversity database, and Wikipedia (Catechu) (accessed 2026)."
-    }
-  },
-  {
-    "id": "s18",
-    "fields": {
-      "CommonName": "Bael (Bengal Quince)",
-      "BotanicalName": "Aegle marmelos",
-      "Family": "Rutaceae",
-      "Origin": "Native",
-      "UseType": "Medicinal/Religious",
-      "Description": "A thorny deciduous tree native to the Indian subcontinent and Southeast Asia, the sole member of the monotypic genus Aegle, considered sacred by Hindus and Buddhists.",
-      "Phenology": "Fragrant flowers bloom in April-May; the hard-skinned, aromatic globose fruit develops afterward and can take many months to mature and dry.",
-      "Taxonomy": "Kingdom Plantae; Order Sapindales; Family Rutaceae; Subfamily Aurantioideae; Genus Aegle; Species A. marmelos.",
-      "EcologicalUses": "Provides fruit and habitat value in dry deciduous forest zones; naturalized across Sri Lanka and Nepal from its Indian subcontinent origin.",
-      "EthnobotanicalUses": "Leaves, bark, roots, fruit and seeds all used in traditional medicine; leaves are a compulsory offering in the worship of Shiva, and the trifoliate leaf form is said to symbolise his trident.",
-      "Latitude": 30.3399,
-      "Longitude": 78.0322,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Bael_fruit_and_leaves.jpg/640px-Bael_fruit_and_leaves.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Bael_fruit_and_leaves.jpg/640px-Bael_fruit_and_leaves.jpg",
-      "SourceNote": "Verified against Wikipedia (Aegle marmelos) (accessed 2026)."
-    }
-  },
-  {
-    "id": "s19",
-    "fields": {
-      "CommonName": "Palash (Flame of the Forest)",
-      "BotanicalName": "Butea monosperma",
-      "Family": "Fabaceae",
-      "Origin": "Native",
-      "UseType": "Ornamental/Dye",
-      "Description": "A medium-sized, dry-season-deciduous tree native to tropical and subtropical South and Southeast Asia, revered as sacred by Hindus and known for its striking orange-red spring bloom.",
-      "Phenology": "Slow-growing; bright orange-red flowers 2.5 cm long appear in dense racemes in late winter to early spring, typically on a leafless tree, followed by flat pods 15-20 cm long.",
-      "Taxonomy": "Kingdom Plantae; Order Fabales; Family Fabaceae; Subfamily Faboideae; Genus Butea; Species B. monosperma.",
-      "EcologicalUses": "Provides an important early-spring nectar source when little else is flowering; the state flower of Jharkhand and closely tied to regional dry deciduous forest ecosystems.",
-      "EthnobotanicalUses": "Gum from the bark (Bengal kino) is used in dyeing and tanning; young leaves used as fodder; flowers traditionally used to make the natural Holi colour 'kesari'; wood used for ritual utensils in Hindu ceremonies.",
-      "Latitude": 30.3363,
-      "Longitude": 78.0349,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Butea_monosperma_flowers.jpg/640px-Butea_monosperma_flowers.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Butea_monosperma_flowers.jpg/640px-Butea_monosperma_flowers.jpg",
-      "SourceNote": "Verified against Wikipedia (Butea monosperma) (accessed 2026)."
-    }
-  },
-  {
-    "id": "s20",
-    "fields": {
-      "CommonName": "Kachnar (Orchid Tree)",
-      "BotanicalName": "Bauhinia variegata",
-      "Family": "Fabaceae",
-      "Origin": "Native",
-      "UseType": "Ornamental/Food",
-      "Description": "A small to medium-sized tree native to an area spanning southern China through Southeast Asia to the Indian subcontinent, valued for its showy orchid-like flowers and edible flower buds.",
-      "Phenology": "Deciduous in the dry season; conspicuous bright pink or white flowers 5-12 cm across appear at or after leaf fall in late winter to early spring, followed by long flat seed pods.",
-      "Taxonomy": "Kingdom Plantae; Order Fabales; Family Fabaceae; Genus Bauhinia; Species B. variegata.",
-      "EcologicalUses": "Flowers attract pollinators including bees and sunbirds; naturalized in open woodlands and forest edges across its native range.",
-      "EthnobotanicalUses": "Unopened flower buds (kachnar) are a popular vegetable across North India and Pakistan, cooked into curries and pickles; bark and roots used in traditional remedies.",
-      "Latitude": 30.3407,
-      "Longitude": 78.0359,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Bauhinia_variegata_flowers.jpg/640px-Bauhinia_variegata_flowers.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Bauhinia_variegata_flowers.jpg/640px-Bauhinia_variegata_flowers.jpg",
-      "SourceNote": "Verified against Wikipedia (Bauhinia variegata) (accessed 2026)."
-    }
-  },
-  {
-    "id": "s21",
-    "fields": {
-      "CommonName": "Saptaparni (Devil Tree)",
-      "BotanicalName": "Alstonia scholaris",
-      "Family": "Apocynaceae",
-      "Origin": "Native",
-      "UseType": "Timber/Medicinal",
-      "Description": "A large evergreen tree native from Pakistan through southern China and south to northern Australia, named 'scholaris' for its historic use in making school writing slates and blackboards.",
-      "Phenology": "Evergreen with leaves in distinctive whorls of three to ten (giving the Sanskrit name 'saptaparni', or seven-leaves); fragrant white flowers typically bloom around October.",
-      "Taxonomy": "Kingdom Plantae; Order Gentianales; Family Apocynaceae; Genus Alstonia; Species A. scholaris.",
-      "EcologicalUses": "Grows up to 40 m tall with fluted, buttressed trunk; the tree is toxic to some herbivores due to bitter latex sap, which likely reduces browsing pressure.",
-      "EthnobotanicalUses": "Bark ('Dita bark') has long been used in traditional medicine across its range for fevers, dysentery and malaria; soft wood historically used for pencils, school slates and blackboards.",
-      "Latitude": 30.3381,
-      "Longitude": 78.0367,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Alstonia_scholaris_leaves.jpg/640px-Alstonia_scholaris_leaves.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Alstonia_scholaris_leaves.jpg/640px-Alstonia_scholaris_leaves.jpg",
-      "SourceNote": "Verified against Wikipedia (Alstonia scholaris) and LUMS Biodiversity database (accessed 2026)."
-    }
-  },
-  {
-    "id": "s22",
-    "fields": {
-      "CommonName": "Jackfruit",
-      "BotanicalName": "Artocarpus heterophyllus",
-      "Family": "Moraceae",
-      "Origin": "Native",
-      "UseType": "Fruit",
-      "Description": "An evergreen tree believed to have originated in the rainforests of the Western Ghats of India (present-day Kerala, coastal Karnataka and Maharashtra), producing the largest tree-borne fruit in the world.",
-      "Phenology": "Evergreen; male and female flower clusters are borne directly on the trunk and main branches (cauliflory); a mature tree can produce up to 200 fruits a year, occasionally more in older trees.",
-      "Taxonomy": "Kingdom Plantae; Order Rosales; Family Moraceae; Genus Artocarpus; Species A. heterophyllus.",
-      "EcologicalUses": "Closely related to breadfruit within Artocarpus; the rind and seeds are used as livestock fodder in parts of its range.",
-      "EthnobotanicalUses": "National fruit of Bangladesh and state fruit of Kerala and Tamil Nadu; ripe fruit eaten fresh, unripe fruit cooked as a vegetable, and seeds boiled or roasted; wood used for furniture.",
-      "Latitude": 30.3372,
-      "Longitude": 78.0356,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Jackfruit_on_tree.jpg/640px-Jackfruit_on_tree.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Jackfruit_on_tree.jpg/640px-Jackfruit_on_tree.jpg",
-      "SourceNote": "Verified against Wikipedia (Jackfruit) (accessed 2026)."
-    }
-  },
-  {
-    "id": "s23",
-    "fields": {
-      "CommonName": "Tamarind",
-      "BotanicalName": "Tamarindus indica",
-      "Family": "Fabaceae",
-      "Origin": "Exotic",
-      "UseType": "Fruit",
-      "Description": "A long-lived tropical tree that, despite its species name 'indica', is native to tropical Africa and Madagascar; it was introduced to and naturalized across India and South Asia in ancient times and is now deeply embedded in South Asian cuisine.",
-      "Phenology": "Small yellowish flowers with red-purple veins are produced in racemes in late spring to summer; the curved, velvety brown pods mature from late fall into early summer.",
-      "Taxonomy": "Kingdom Plantae; Order Fabales; Family Fabaceae; Subfamily Caesalpinioideae; Genus Tamarindus; Species T. indica.",
-      "EcologicalUses": "A slow-growing, drought-tolerant, long-lived shade tree with a dense dome-shaped crown; the sole species in its genus.",
-      "EthnobotanicalUses": "Sour pulp from the pods is a staple souring agent across South Asian cooking (chutneys, curries, sauces); also used medicinally and as a metal polish; wood used in carpentry. Its name derives from Arabic 'tamar-hindi' (Indian date), reflecting its long history of cultivation in India despite its African origin.",
-      "Latitude": 30.336,
-      "Longitude": 78.0333,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Tamarindus_indica_pods.jpg/640px-Tamarindus_indica_pods.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Tamarindus_indica_pods.jpg/640px-Tamarindus_indica_pods.jpg",
-      "SourceNote": "Verified against Wikipedia (Tamarind), Kew Plants of the World Online, and UF/IFAS Extension (accessed 2026). Note: genuinely native to Africa/Madagascar, not India, despite the species epithet."
-    }
-  },
-  {
-    "id": "s24",
-    "fields": {
-      "CommonName": "Himalayan Maple",
-      "BotanicalName": "Acer oblongum",
-      "Family": "Sapindaceae",
-      "Origin": "Native",
-      "UseType": "Timber/Ornamental",
-      "Description": "An unusual evergreen maple native to the lower Himalayan foothills of India, Nepal, Bhutan and adjoining Asia, notable for staying green through winter unlike almost all other maples.",
-      "Phenology": "Evergreen to semi-deciduous; small, inconspicuous greenish-white flowers appear in dense hairy racemes typically in winter (December-January in cultivation), followed by the classic two-winged maple samaras.",
-      "Taxonomy": "Kingdom Plantae; Order Sapindales; Family Sapindaceae; Genus Acer; Species A. oblongum.",
-      "EcologicalUses": "Grows naturally in moist forests along Himalayan streams and watercourses at 600-2000 m elevation; buttressed trunk helps stabilise streamside soil.",
-      "EthnobotanicalUses": "Wood used locally for plywood, boxes, planks, and household items such as ladles and drinking cups; also grown ornamentally for its glossy, evergreen foliage.",
-      "Latitude": 30.3415,
-      "Longitude": 78.0345,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Acer_oblongum_leaves.jpg/640px-Acer_oblongum_leaves.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Acer_oblongum_leaves.jpg/640px-Acer_oblongum_leaves.jpg",
-      "SourceNote": "Verified against Wikipedia (Acer oblongum) and Uttarakhand Forest Department plant database (accessed 2026)."
-    }
-  },
-  {
-    "id": "s25",
-    "fields": {
-      "CommonName": "Siris (East Indian Walnut)",
-      "BotanicalName": "Albizia lebbeck",
-      "Family": "Fabaceae",
-      "Origin": "Native",
-      "UseType": "Timber/Medicinal",
-      "Description": "A large deciduous tree native to the Indian subcontinent and Myanmar, now widely naturalised across the tropics, known for its rattling seed pods that give it the common name 'woman's tongue tree'.",
-      "Phenology": "Deciduous; very fragrant white flowers with numerous long stamens bloom mainly in summer, followed by flat pods 15-30 cm long containing 6-12 seeds that rattle audibly in the wind.",
-      "Taxonomy": "Kingdom Plantae; Order Fabales; Family Fabaceae; Subfamily Caesalpinioideae; Genus Albizia; Species A. lebbeck.",
-      "EcologicalUses": "A nitrogen-fixing legume important for soil improvement in its native dry deciduous and riverbank habitats; tolerant of a wide range of climates from semi-desert to humid.",
-      "EthnobotanicalUses": "Used traditionally to treat bronchitis, cough and asthma in Ayurvedic medicine; wood valued for construction, furniture-making and veneer; seed oil historically used in treating skin conditions.",
-      "Latitude": 30.3358,
-      "Longitude": 78.0362,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Albizia_lebbeck_flowers.jpg/640px-Albizia_lebbeck_flowers.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Albizia_lebbeck_flowers.jpg/640px-Albizia_lebbeck_flowers.jpg",
-      "SourceNote": "Verified against Wikipedia (Albizia lebbeck) and USDA Forest Service species profile (accessed 2026)."
-    }
-  },
-  {
-    "id": "s26",
-    "fields": {
-      "CommonName": "Australian Pine (Whistling Pine)",
-      "BotanicalName": "Casuarina equisetifolia",
-      "Family": "Casuarinaceae",
-      "Origin": "Native",
-      "UseType": "Timber/Coastal",
-      "Description": "An evergreen, pine-like tree (though not a true conifer) with a native range spanning Australia, New Guinea, Southeast Asia and India, especially coastal areas, valued for erosion control and windbreaks.",
-      "Phenology": "Evergreen with needle-like jointed branchlets that carry out photosynthesis in place of true leaves; small cone-like woody fruits develop after inconspicuous male and female flowers on the same tree.",
-      "Taxonomy": "Kingdom Plantae; Order Fagales; Family Casuarinaceae; Genus Casuarina; Species C. equisetifolia.",
-      "EcologicalUses": "A nitrogen-fixing tree (via root-associated bacteria) well suited to poor, sandy coastal soils; widely used for sand dune stabilisation, shelterbelts and erosion control along tropical coastlines.",
-      "EthnobotanicalUses": "Wood used for fuelwood and light construction; extensively planted along coastlines (including a 3,000 km belt in southern China) for cyclone and wind protection.",
-      "Latitude": 30.3348,
-      "Longitude": 78.0338,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Casuarina_equisetifolia_habit.jpg/640px-Casuarina_equisetifolia_habit.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Casuarina_equisetifolia_habit.jpg/640px-Casuarina_equisetifolia_habit.jpg",
-      "SourceNote": "Verified against Wikipedia (Casuarina equisetifolia) and Kew Plants of the World Online, which lists India within its native range (accessed 2026)."
-    }
-  },
-  {
-    "id": "s27",
-    "fields": {
-      "CommonName": "Forest Red Gum (Eucalyptus)",
-      "BotanicalName": "Eucalyptus tereticornis",
-      "Family": "Myrtaceae",
-      "Origin": "Exotic",
-      "UseType": "Timber",
-      "Description": "A fast-growing evergreen tree native to eastern Australia and southern New Guinea, widely introduced to India and other countries for timber, shade and reforestation.",
-      "Phenology": "Evergreen; smooth bark shed in irregular sheets giving a patchy white-grey-blue trunk; clusters of small white flowers bloom mainly in late spring to summer, followed by hemispherical woody fruit ('gum nuts').",
-      "Taxonomy": "Kingdom Plantae; Order Myrtales; Family Myrtaceae; Genus Eucalyptus; Species E. tereticornis.",
-      "EcologicalUses": "Fast-growing pioneer species often used in plantation forestry and reforestation; provides some pollinator forage, though large-scale eucalyptus plantations are debated for their heavy water use in Indian conditions.",
-      "EthnobotanicalUses": "Strong, durable timber used in construction, furniture and paper production; widely planted in India for fast-growing pulpwood and windbreak purposes since colonial-era forestry programmes.",
-      "Latitude": 30.3392,
-      "Longitude": 78.0348,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Eucalyptus_tereticornis_bark.jpg/640px-Eucalyptus_tereticornis_bark.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Eucalyptus_tereticornis_bark.jpg/640px-Eucalyptus_tereticornis_bark.jpg",
-      "SourceNote": "Verified against Wikipedia (Eucalyptus tereticornis) (accessed 2026)."
-    }
-  },
-  {
-    "id": "s28",
-    "fields": {
-      "CommonName": "Ginkgo (Maidenhair Tree)",
-      "BotanicalName": "Ginkgo biloba",
-      "Family": "Ginkgoaceae",
-      "Origin": "Exotic",
-      "UseType": "Ornamental/Medicinal",
-      "Description": "A living-fossil tree native to eastern China, the sole surviving species of an ancient plant order dating back over 200 million years, now planted worldwide as an ornamental and avenue tree.",
-      "Phenology": "Deciduous; distinctive fan-shaped leaves turn bright yellow in autumn; the tree is dioecious (separate male and female trees), with female trees producing fleshy, foul-smelling seed coats in autumn.",
-      "Taxonomy": "Kingdom Plantae; Division Ginkgophyta; Class Ginkgoopsida; Order Ginkgoales; Family Ginkgoaceae; Genus Ginkgo; Species G. biloba.",
-      "EcologicalUses": "Considered functionally extinct in the truly wild state, surviving mainly through cultivation in Chinese temple gardens for centuries before being redistributed worldwide as an ornamental.",
-      "EthnobotanicalUses": "Nut-like seed kernels are a traditional food in China; leaf extracts are widely sold as a dietary supplement, though rigorous evidence for health benefits is limited; wood used for crafts and small carvings.",
-      "Latitude": 30.3405,
-      "Longitude": 78.0341,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Ginkgo_biloba_leaves.jpg/640px-Ginkgo_biloba_leaves.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Ginkgo_biloba_leaves.jpg/640px-Ginkgo_biloba_leaves.jpg",
-      "SourceNote": "Verified against Wikipedia (Ginkgo biloba) and Kew Plants of the World Online (accessed 2026)."
-    }
-  },
-  {
-    "id": "s29",
-    "fields": {
-      "CommonName": "Guava",
-      "BotanicalName": "Psidium guajava",
-      "Family": "Myrtaceae",
-      "Origin": "Exotic",
-      "UseType": "Fruit",
-      "Description": "An evergreen shrub or small tree genuinely native to Mexico, Central America, the Caribbean and tropical South America, introduced to and now naturalised extensively across India and the rest of the Old World tropics.",
-      "Phenology": "Evergreen; white flowers pollinated mainly by honeybees appear through much of the year in warm climates; fruit ranges from apricot- to grapefruit-sized depending on cultivar, with white, pink or red flesh.",
-      "Taxonomy": "Kingdom Plantae; Order Myrtales; Family Myrtaceae; Genus Psidium; Species P. guajava.",
-      "EcologicalUses": "Highly adaptable and fast-spreading once introduced, sometimes considered a mildly invasive species outside its native range due to easy naturalisation.",
-      "EthnobotanicalUses": "Fruit is a major commercial and dietary crop across India, eaten fresh or processed into juice, jelly and paste; leaves and fruit used in traditional medicine across many cultures for digestive and inflammatory complaints.",
-      "Latitude": 30.337,
-      "Longitude": 78.0371,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Psidium_guajava_fruit.jpg/640px-Psidium_guajava_fruit.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Psidium_guajava_fruit.jpg/640px-Psidium_guajava_fruit.jpg",
-      "SourceNote": "Verified against Wikipedia (Psidium guajava) and Kew Plants of the World Online (accessed 2026). Note: genuinely native to the Americas, not India, despite being one of India's most common cultivated fruit trees."
-    }
-  },
-  {
-    "id": "s30",
-    "fields": {
-      "CommonName": "Persian Walnut",
-      "BotanicalName": "Juglans regia",
-      "Family": "Juglandaceae",
-      "Origin": "Native",
-      "UseType": "Timber/Nut",
-      "Description": "A large deciduous tree native across a broad Eurasian range stretching from the Balkans through central Asia to the Himalayas and southwest China, cultivated worldwide for its edible nut.",
-      "Phenology": "Deciduous; male flowers hang in drooping catkins while female flowers form in small terminal clusters, ripening in autumn into a fleshy green husk enclosing the familiar brown, corrugated nut.",
-      "Taxonomy": "Kingdom Plantae; Order Fagales; Family Juglandaceae; Genus Juglans; Species J. regia.",
-      "EcologicalUses": "A light-demanding species requiring full sun; extensive natural walnut forests still exist in parts of Central Asia such as Kyrgyzstan.",
-      "EthnobotanicalUses": "Nuts are eaten fresh or pressed for richly flavoured oil and are a major commercial crop in Himalayan states of India; high-quality wood used for furniture and gunstocks.",
-      "Latitude": 30.3414,
-      "Longitude": 78.0328,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Juglans_regia_nuts.jpg/640px-Juglans_regia_nuts.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Juglans_regia_nuts.jpg/640px-Juglans_regia_nuts.jpg",
-      "SourceNote": "Verified against Wikipedia (Juglans regia) (accessed 2026)."
-    }
-  },
-  {
-    "id": "s31",
-    "fields": {
-      "CommonName": "Pomegranate",
-      "BotanicalName": "Punica granatum",
-      "Family": "Lythraceae",
-      "Origin": "Native",
-      "UseType": "Fruit",
-      "Description": "A deciduous shrub or small tree whose native range stretches from Iran through Central Asia to the Himalayas of northern India, long cultivated across the Mediterranean and South Asia for its jewel-seeded fruit.",
-      "Phenology": "Showy bright red flowers, 3 cm across with three to seven petals, bloom from spring into summer; the tough-skinned fruit, packed with juicy red arils, ripens from autumn into winter.",
-      "Taxonomy": "Kingdom Plantae; Order Myrtales; Family Lythraceae (formerly placed in its own family Punicaceae); Genus Punica; Species P. granatum.",
-      "EcologicalUses": "Drought-tolerant and adaptable to a range of soils; an important nectar source for pollinators during its flowering season.",
-      "EthnobotanicalUses": "Fruit eaten fresh or juiced, and used in cooking across South Asian and Middle Eastern cuisines; a longstanding symbol of fertility and abundance across Mediterranean, Persian and South Asian cultures.",
-      "Latitude": 30.3379,
-      "Longitude": 78.0334,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Punica_granatum_fruit.jpg/640px-Punica_granatum_fruit.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Punica_granatum_fruit.jpg/640px-Punica_granatum_fruit.jpg",
-      "SourceNote": "Verified against Wikipedia (Pomegranate) and Oregon State University landscape plants database (accessed 2026)."
-    }
-  },
-  {
-    "id": "s32",
-    "fields": {
-      "CommonName": "Indian Sandalwood",
-      "BotanicalName": "Santalum album",
-      "Family": "Santalaceae",
-      "Origin": "Native",
-      "UseType": "Medicinal/Aromatic",
-      "Description": "A small, slow-growing, hemi-parasitic tree traditionally regarded as native to southern India, though its precise origin is debated -- some botanists believe it was introduced to India from the Lesser Sunda Islands of Indonesia many centuries ago. It is the classic source of sandalwood oil.",
-      "Phenology": "Evergreen and long-lived (up to 100 years); the plant is a root hemi-parasite, tapping the roots of neighbouring trees for water and nutrients while photosynthesising its own food.",
-      "Taxonomy": "Kingdom Plantae; Order Santalales; Family Santalaceae; Genus Santalum; Species S. album.",
-      "EcologicalUses": "As a root parasite it depends on host plant species nearby; overharvesting has made wild populations vulnerable to extinction across its Indian range.",
-      "EthnobotanicalUses": "Fragrant heartwood and its distilled oil are central to Hindu religious ritual, Ayurvedic medicine, and the perfume industry; historically used for fine woodworking and carving, now largely restricted to oil extraction due to scarcity of large trees.",
-      "Latitude": 30.3383,
-      "Longitude": 78.0359,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Santalum_album.jpg/640px-Santalum_album.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Santalum_album.jpg/640px-Santalum_album.jpg",
-      "SourceNote": "Verified against Wikipedia (Santalum album and Santalum genus page) (accessed 2026). Note: origin as native vs. ancient introduction to India is genuinely debated among botanists."
-    }
-  },
-  {
-    "id": "s33",
-    "fields": {
-      "CommonName": "Ashoka Tree",
-      "BotanicalName": "Saraca asoca",
-      "Family": "Fabaceae",
-      "Origin": "Native",
-      "UseType": "Ornamental/Medicinal",
-      "Description": "A small evergreen tree native to the Indian subcontinent, with its original range centred on the Deccan Plateau and Western Ghats, though it also occurs in the Himalayan foothills; deeply significant across Hindu, Buddhist and Jain tradition.",
-      "Phenology": "Evergreen; heavy, fragrant clusters of orange-yellow flowers bloom February-April, turning red before wilting; now classified as Vulnerable in the wild due to habitat loss and overharvesting of bark.",
-      "Taxonomy": "Kingdom Plantae; Order Fabales; Family Fabaceae (subfamily Detarioideae); Genus Saraca; Species S. asoca.",
-      "EcologicalUses": "A rainforest-associated species naturally found along streams and rivers in moist forest habitats; increasingly rare in the wild, though widely cultivated ornamentally.",
-      "EthnobotanicalUses": "Bark has long been used in traditional Ayurvedic medicine, particularly for gynaecological conditions; the tree holds deep religious significance and is frequently planted near temples across the Indian subcontinent; state flower of Odisha.",
-      "Latitude": 30.336,
-      "Longitude": 78.0345,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Saraca_asoca_flowers.jpg/640px-Saraca_asoca_flowers.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Saraca_asoca_flowers.jpg/640px-Saraca_asoca_flowers.jpg",
-      "SourceNote": "Verified against Wikipedia (Saraca asoca) (accessed 2026)."
-    }
-  },
-  {
-    "id": "s34",
-    "fields": {
-      "CommonName": "Ber (Indian Jujube)",
-      "BotanicalName": "Ziziphus mauritiana",
-      "Family": "Rhamnaceae",
-      "Origin": "Native",
-      "UseType": "Fruit",
-      "Description": "A spiny, evergreen to deciduous shrub or small tree believed native to South Asia, southern China, Southeast Asia and parts of Africa, now one of the most widely cultivated fruit trees of arid and semi-arid India.",
-      "Phenology": "Small greenish flowers appear in axillary clusters; the round to oval fruit ripens from green to yellow to reddish-brown, with a crisp, apple-like unripe stage and sweeter fully ripe stage.",
-      "Taxonomy": "Kingdom Plantae; Order Rosales; Family Rhamnaceae; Genus Ziziphus; Species Z. mauritiana.",
-      "EcologicalUses": "Hardy and drought-tolerant, well adapted to sandy arid soils; provides food for birds and other wildlife via its fruit and pollen for bees.",
-      "EthnobotanicalUses": "Fruit is widely eaten fresh, dried or made into juice and preserves across India, and is notably rich in vitamin C (second only to guava); leaves used as fodder, bark for dye and tannin, and various parts in traditional medicine.",
-      "Latitude": 30.3364,
-      "Longitude": 78.0328,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Ziziphus_mauritiana_fruit.jpg/640px-Ziziphus_mauritiana_fruit.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Ziziphus_mauritiana_fruit.jpg/640px-Ziziphus_mauritiana_fruit.jpg",
-      "SourceNote": "Verified against Wikipedia (Ziziphus mauritiana / Ber) (accessed 2026)."
-    }
-  },
-  {
-    "id": "s35",
-    "fields": {
-      "CommonName": "White Mulberry",
-      "BotanicalName": "Morus alba",
-      "Family": "Moraceae",
-      "Origin": "Native",
-      "UseType": "Fruit/Fodder",
-      "Description": "A fast-growing, short-lived mulberry tree whose native range covers China and India, long cultivated worldwide for its leaves, which are the primary food source for silkworms in commercial silk production.",
-      "Phenology": "Deciduous; small greenish flowers in catkins bloom in late spring, followed by compound berry-like fruit that ripens from green-white to pink or dark red, sweet but relatively bland.",
-      "Taxonomy": "Kingdom Plantae; Order Rosales; Family Moraceae; Genus Morus; Species M. alba.",
-      "EcologicalUses": "Notable for having one of the fastest recorded movements in the plant kingdom -- its pollen is released at over half the speed of sound; fast growth makes it a common early coloniser of open and disturbed ground.",
-      "EthnobotanicalUses": "Leaves are the essential food source for silkworm cultivation (sericulture), a major traditional industry across parts of India; fruit eaten fresh or dried; wood used in some regions for sports equipment and crafts.",
-      "Latitude": 30.3411,
-      "Longitude": 78.0362,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Morus_alba_fruit.jpg/640px-Morus_alba_fruit.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Morus_alba_fruit.jpg/640px-Morus_alba_fruit.jpg",
-      "SourceNote": "Verified against Wikipedia (Morus alba) (accessed 2026)."
-    }
-  },
-  {
-    "id": "s36",
-    "fields": {
-      "CommonName": "Camphor Tree",
-      "BotanicalName": "Cinnamomum camphora",
-      "Family": "Lauraceae",
-      "Origin": "Exotic",
-      "UseType": "Timber/Medicinal",
-      "Description": "A large evergreen tree native to China south of the Yangtze River, Taiwan, southern Japan, Korea and Vietnam (with some sources including parts of India in its native range), long cultivated worldwide as the traditional source of camphor.",
-      "Phenology": "Evergreen; masses of small, fragrant greenish-white flowers appear in spring, followed by clusters of small black, berry-like fruit; all parts of the tree are strongly camphor-scented when crushed.",
-      "Taxonomy": "Kingdom Plantae; Order Laurales; Family Lauraceae; Genus Cinnamomum; Species C. camphora.",
-      "EcologicalUses": "Considered an invasive species in parts of Australia and the southeastern United States due to prolific bird-dispersed fruit; in Japan, especially old specimens are treated as sacred trees.",
-      "EthnobotanicalUses": "Historically the primary source of natural camphor, extracted by steam distillation of the wood and leaves, once vital to medicine, smokeless gunpowder and celluloid production; still cultivated for timber and ornamental planting.",
-      "Latitude": 30.3389,
-      "Longitude": 78.0353,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Cinnamomum_camphora_leaves.jpg/640px-Cinnamomum_camphora_leaves.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Cinnamomum_camphora_leaves.jpg/640px-Cinnamomum_camphora_leaves.jpg",
-      "SourceNote": "Verified against Wikipedia (Cinnamomum camphora) and LUMS Biodiversity database, which lists India within its native/naturalised range (accessed 2026)."
-    }
-  },
-  {
-    "id": "s37",
-    "fields": {
-      "CommonName": "Bakul (Spanish Cherry)",
-      "BotanicalName": "Mimusops elengi",
-      "Family": "Sapotaceae",
-      "Origin": "Native",
-      "UseType": "Ornamental/Medicinal",
-      "Description": "A medium to large evergreen tree native to tropical forests of South Asia, Southeast Asia and northern Australia, cherished across the Indian subcontinent for its intensely fragrant, long-lasting flowers.",
-      "Phenology": "Evergreen; small, cream, star-shaped and highly fragrant flowers bloom mainly April-July, opening in the evening and dropping to the ground the next morning while retaining their scent; fruits ripen June-October.",
-      "Taxonomy": "Kingdom Plantae; Order Ericales; Family Sapotaceae; Genus Mimusops; Species M. elengi.",
-      "EcologicalUses": "Provides dense year-round shade and is a valuable ornamental and avenue tree across South Asian cities; fruit and flowers attract birds and pollinators.",
-      "EthnobotanicalUses": "Fallen flowers are traditionally collected and threaded into garlands, or dried and kept for their long-lasting fragrance; bark, flowers, fruit and seeds are used in Ayurvedic medicine, especially for dental ailments; timber is valued for construction.",
-      "Latitude": 30.3403,
-      "Longitude": 78.0329,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Mimusops_elengi_flowers.jpg/640px-Mimusops_elengi_flowers.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Mimusops_elengi_flowers.jpg/640px-Mimusops_elengi_flowers.jpg",
-      "SourceNote": "Verified against Wikipedia/Jungledragon (Mimusops elengi) and LUMS Biodiversity database (accessed 2026)."
-    }
-  },
-  {
-    "id": "s38",
-    "fields": {
-      "CommonName": "False Ashoka (Mast Tree)",
-      "BotanicalName": "Polyalthia longifolia",
-      "Family": "Annonaceae",
-      "Origin": "Native",
-      "UseType": "Ornamental",
-      "Description": "A tall, columnar evergreen tree native to southern India and Sri Lanka, widely planted across South Asia as an avenue and noise-buffering tree, often confused with the true ashoka tree (Saraca asoca) due to superficial resemblance.",
-      "Phenology": "Evergreen; long, narrow, wavy-margined leaves emerge coppery-brown before maturing to dark green; small yellowish-green star-shaped flowers appear in spring, followed by clusters of fruit that turn purple-black when ripe.",
-      "Taxonomy": "Kingdom Plantae; Order Magnoliales; Family Annonaceae; Genus Polyalthia (also placed in genus Monoon as M. longifolium); Species P. longifolia.",
-      "EcologicalUses": "Symmetrical pyramidal growth and dense foliage make it effective at buffering noise pollution along roads and in urban plantings; leaves are a larval food plant for some butterfly species.",
-      "EthnobotanicalUses": "Widely used as a street and garden tree across India for its narrow, non-invasive footprint; leaves are used for ornamental festoons and decoration during Indian festivals; bark used in traditional medicine for fever and diabetes.",
-      "Latitude": 30.3396,
-      "Longitude": 78.0367,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Polyalthia_longifolia_pendula.jpg/640px-Polyalthia_longifolia_pendula.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Polyalthia_longifolia_pendula.jpg/640px-Polyalthia_longifolia_pendula.jpg",
-      "SourceNote": "Verified against Wikipedia and Flora of Qatar (Polyalthia longifolia) (accessed 2026)."
-    }
-  },
-  {
-    "id": "s39",
-    "fields": {
-      "CommonName": "Eastern Cottonwood (Poplar)",
-      "BotanicalName": "Populus deltoides",
-      "Family": "Salicaceae",
-      "Origin": "Exotic",
-      "UseType": "Timber",
-      "Description": "A large, fast-growing deciduous tree genuinely native to North America (eastern, central and southwestern United States, southern Canada, and northeastern Mexico), introduced to India specifically for commercial poplar plantation forestry.",
-      "Phenology": "Deciduous; dioecious, with male and female flowers on separate trees borne in pendulous catkins that appear before the leaves; one of the fastest-growing trees in North America, capable of 3-4.5 m of height growth per year under good conditions.",
-      "Taxonomy": "Kingdom Plantae; Order Malpighiales; Family Salicaceae; Genus Populus; Section Populus sect. Aigeiros; Species P. deltoides.",
-      "EcologicalUses": "In its introduced Indian range, widely used in agroforestry systems (notably in Punjab, Haryana and the Terai/Doon region) intercropped with agricultural crops for fast wood production.",
-      "EthnobotanicalUses": "Fast-growing timber widely used in India for plywood, matchsticks, and paper pulp; poplar-based agroforestry is a significant source of farmer income in parts of North India.",
-      "Latitude": 30.3407,
-      "Longitude": 78.0324,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Populus_deltoides_foliage.jpg/640px-Populus_deltoides_foliage.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Populus_deltoides_foliage.jpg/640px-Populus_deltoides_foliage.jpg",
-      "SourceNote": "Verified against Wikipedia (Populus deltoides) (accessed 2026). Note: genuinely native to North America, not India, despite widespread plantation use here."
-    }
-  },
-  {
-    "id": "s40",
-    "fields": {
-      "CommonName": "Kassod Tree (Minjiri)",
-      "BotanicalName": "Senna siamea",
-      "Family": "Fabaceae",
-      "Origin": "Native",
-      "UseType": "Timber/Shade",
-      "Description": "A medium-sized evergreen tree native to South and Southeast Asia, including southern India and Sri Lanka, though its exact point of origin is obscured by a long history of cultivation across the region.",
-      "Phenology": "Evergreen; bright yellow flowers bloom in clusters, commonly used as a shade tree in cocoa, coffee and tea plantations across its range.",
-      "Taxonomy": "Kingdom Plantae; Order Fabales; Family Fabaceae; Subfamily Caesalpinioideae; Genus Senna; Species S. siamea.",
-      "EcologicalUses": "Widely planted for erosion control, windbreaks, shelterbelts and roadside shade due to its fast growth and hardiness, though as a Caesalpinioideae species it does not fix nitrogen through the typical Rhizobium symbiosis of many legumes.",
-      "EthnobotanicalUses": "Wood used for fuelwood, poles and light construction; widely planted as an avenue and shade tree across Indian cities; young flower buds and pods eaten as a vegetable or in salads in some Southeast Asian cuisines.",
-      "Latitude": 30.3392,
-      "Longitude": 78.0339,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Senna_siamea_flowers.jpg/640px-Senna_siamea_flowers.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Senna_siamea_flowers.jpg/640px-Senna_siamea_flowers.jpg",
-      "SourceNote": "Verified against Wikipedia (Senna siamea) and PROSEA handbook (accessed 2026)."
-    }
-  },
-  {
-    "id": "s41",
-    "fields": {
-      "CommonName": "Champa (Champak)",
-      "BotanicalName": "Magnolia champaca",
-      "Family": "Magnoliaceae",
-      "Origin": "Native",
-      "UseType": "Ornamental/Religious",
-      "Description": "A large evergreen tree of the magnolia family, native across the Indomalayan realm including India, valued for centuries across South Asia for its intensely fragrant flowers, formerly classified as Michelia champaca.",
-      "Phenology": "Evergreen; strongly fragrant cream to yellow-orange flowers bloom mainly June-September; in ideal native conditions the tree can exceed 50 m, though it's typically smaller (20-30 m) in cultivation.",
-      "Taxonomy": "Kingdom Plantae; Order Magnoliales; Family Magnoliaceae; Genus Magnolia (formerly Michelia); Species M. champaca.",
-      "EcologicalUses": "Bird-attractive, aril-covered seeds are an important food source for frugivorous birds; found naturally in tropical and subtropical moist broadleaf forests at 200-1600 m elevation.",
-      "EthnobotanicalUses": "Deeply fragrant flowers are widely used in Hindu religious offerings across India and were historically a key ingredient in the famous 'Joy' perfume; valuable timber used in woodworking; flowers also used for hair ornamentation.",
-      "Latitude": 30.3401,
-      "Longitude": 78.0344,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Magnolia_champaca_flowers.jpg/640px-Magnolia_champaca_flowers.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Magnolia_champaca_flowers.jpg/640px-Magnolia_champaca_flowers.jpg",
-      "SourceNote": "Verified against Wikipedia (Magnolia champaca / Champac) (accessed 2026)."
-    }
-  },
-  {
-    "id": "s42",
-    "fields": {
-      "CommonName": "Pink Shower Tree",
-      "BotanicalName": "Cassia javanica",
-      "Family": "Fabaceae",
-      "Origin": "Exotic",
-      "UseType": "Ornamental",
-      "Description": "A tall deciduous flowering tree genuinely native to Indonesia (Java, Sumatra) and Malaysia, widely introduced across India and the tropics as a spectacular ornamental for its pink and white blossom displays.",
-      "Phenology": "Deciduous; briefly sheds its leaves right before a striking flowering period, producing clusters of pink-to-crimson flowers fading to white with age, typically in spring and summer; long brown pods follow.",
-      "Taxonomy": "Kingdom Plantae; Order Fabales; Family Fabaceae; Genus Cassia; Species C. javanica.",
-      "EcologicalUses": "A nitrogen-fixing legume; flowers are heavily visited by bees and other pollinators during bloom; can behave as a pioneer species on disturbed ground.",
-      "EthnobotanicalUses": "Widely planted as an ornamental street and park tree across South and Southeast Asia; wood used locally for construction in parts of its native range; closely related to and sometimes hybridised with the golden shower tree (Cassia fistula).",
-      "Latitude": 30.3358,
-      "Longitude": 78.0371,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Cassia_javanica_flowers.jpg/640px-Cassia_javanica_flowers.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Cassia_javanica_flowers.jpg/640px-Cassia_javanica_flowers.jpg",
-      "SourceNote": "Verified against Wikipedia/UF-IFAS Extension and housing.com plant guide (Cassia javanica) (accessed 2026). Note: native to Indonesia/Malaysia, not India."
-    }
-  },
-  {
-    "id": "s43",
-    "fields": {
-      "CommonName": "Bhimal",
-      "BotanicalName": "Grewia optiva",
-      "Family": "Malvaceae",
-      "Origin": "Native",
-      "UseType": "Fodder/Fibre",
-      "Description": "A small to medium deciduous tree native to the Indian subcontinent, especially valuable in the western Himalayan foothills of Uttarakhand, Himachal Pradesh and Jammu & Kashmir, where it grows naturally up to 1,800 m elevation.",
-      "Phenology": "Deciduous; flowers appear before fruiting; grown extensively in intercropping systems with crops like taro and turmeric in the western Himalaya.",
-      "Taxonomy": "Kingdom Plantae; Order Malvales; Family Malvaceae; Genus Grewia; Species G. optiva.",
-      "EcologicalUses": "One of the most heavily browsed winter fodder species for cattle in the western Himalaya, valuable precisely because it stays leafy when little else is available; commonly grown on farm field boundaries.",
-      "EthnobotanicalUses": "Bark yields a strong bast fibre used to make ropes; a training programme on bhimal fibre extraction techniques has been run by the Forest Research Institute itself in nearby Mussoorie; resilient timber used for tool handles, bows and oars; considered a 'wonder tree of the Himalaya' for its multipurpose uses.",
-      "Latitude": 30.3418,
-      "Longitude": 78.0356,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Grewia_optiva_leaves.jpg/640px-Grewia_optiva_leaves.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Grewia_optiva_leaves.jpg/640px-Grewia_optiva_leaves.jpg",
-      "SourceNote": "Verified against Wikipedia (Grewia optiva), World Agroforestry Centre database, and an ICFRE/FRI Dehradun training report on bhimal fibre extraction (accessed 2026)."
-    }
-  },
-  {
-    "id": "s44",
-    "fields": {
-      "CommonName": "Lychee (Litchi)",
-      "BotanicalName": "Litchi chinensis",
-      "Family": "Sapindaceae",
-      "Origin": "Exotic",
-      "UseType": "Fruit",
-      "Description": "An evergreen fruit tree genuinely native to the Guangdong and Fujian provinces of southern China, where cultivation has been documented since the 11th century; introduced to India in the 18th century via Burma.",
-      "Phenology": "Evergreen; newly emerging leaves are a bright coppery red before turning green; small greenish-white flowers form in panicles, followed by the familiar rough pink-red, sweet-fleshed fruit.",
-      "Taxonomy": "Kingdom Plantae; Order Sapindales; Family Sapindaceae; Genus Litchi; Species L. chinensis.",
-      "EcologicalUses": "Introduced fruit tree now cultivated across parts of eastern India (notably Bihar), which has become a major lychee-producing region outside China.",
-      "EthnobotanicalUses": "Fruit widely eaten fresh and highly prized commercially; leaves, bark and flowers used in some traditional medicine; caution is warranted as consumption of lychee seeds/unripe fruit by malnourished children has been linked to cases of hypoglycemic encephalopathy in parts of India.",
-      "Latitude": 30.3403,
-      "Longitude": 78.0331,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Litchi_chinensis_fruit.jpg/640px-Litchi_chinensis_fruit.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Litchi_chinensis_fruit.jpg/640px-Litchi_chinensis_fruit.jpg",
-      "SourceNote": "Verified against Wikipedia (Lychee) and a Subharti University plant profile noting its 18th-century introduction to India (accessed 2026). Note: native to China, not India."
-    }
-  },
-  {
-    "id": "s45",
-    "fields": {
-      "CommonName": "Toon (Indian Mahogany)",
-      "BotanicalName": "Toona ciliata",
-      "Family": "Meliaceae",
-      "Origin": "Native",
-      "UseType": "Timber",
-      "Description": "A large forest tree in the mahogany family, native across a broad range from Afghanistan through the Himalayas to Papua New Guinea and Australia, valued as an important timber species across its Indian range.",
-      "Phenology": "Extended compound leaves up to 90 cm long with 10-14 pairs of leaflets; fragrant flowers yield a dye; timing of flowering and leaf flush varies across its wide range.",
-      "Taxonomy": "Kingdom Plantae; Order Sapindales; Family Meliaceae; Subfamily Cedreloideae; Genus Toona; Species T. ciliata.",
-      "EcologicalUses": "A component of semi-evergreen and evergreen forests across its Himalayan and Southeast Asian range, cultivated in plains and foothills up to 1000 m in India.",
-      "EthnobotanicalUses": "Valuable reddish hardwood used for furniture, panelling, shipbuilding and musical instruments including the sitar and rudra veena; increasingly used as a substitute for restricted American mahogany in guitar manufacturing; bark used in traditional medicine.",
-      "Latitude": 30.3411,
-      "Longitude": 78.0339,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Toona_ciliata_leaves.jpg/640px-Toona_ciliata_leaves.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Toona_ciliata_leaves.jpg/640px-Toona_ciliata_leaves.jpg",
-      "SourceNote": "Verified against Wikipedia (Toona ciliata / Toona genus) (accessed 2026)."
-    }
-  },
-  {
-    "id": "s46",
-    "fields": {
-      "CommonName": "Reetha (Soapnut Tree)",
-      "BotanicalName": "Sapindus mukorossi",
-      "Family": "Sapindaceae",
-      "Origin": "Native",
-      "UseType": "Medicinal/Industrial",
-      "Description": "A deciduous tree native to the lower foothills and midhills of the Himalayas up to 1,200 m elevation, including the Uttarakhand region, as well as parts of western coastal India, long valued for its natural cleansing fruit.",
-      "Phenology": "Deciduous, shedding leaves especially in cooler winter regions; produces small greenish flowers followed by fruit containing natural saponins; a single mature tree can yield 30-35 kg of fruit annually.",
-      "Taxonomy": "Kingdom Plantae; Order Sapindales; Family Sapindaceae; Genus Sapindus; Species S. mukorossi.",
-      "EcologicalUses": "Tolerant of reasonably poor soils and often grown around farmers' homes in the Himalayan foothills; deep root system aids drought tolerance.",
-      "EthnobotanicalUses": "Fruit (soapnuts) contain saponins used traditionally as a natural, biodegradable cleanser for hair, skin and clothing, and as a natural insecticide; still used today in herbal shampoos and as an eco-friendly laundry alternative.",
-      "Latitude": 30.3423,
-      "Longitude": 78.0331,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Sapindus_mukorossi_fruit.jpg/640px-Sapindus_mukorossi_fruit.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Sapindus_mukorossi_fruit.jpg/640px-Sapindus_mukorossi_fruit.jpg",
-      "SourceNote": "Verified against Wikipedia (Sapindus mukorossi) (accessed 2026)."
-    }
-  },
-  {
-    "id": "s47",
-    "fields": {
-      "CommonName": "Peach",
-      "BotanicalName": "Prunus persica",
-      "Family": "Rosaceae",
-      "Origin": "Exotic",
-      "UseType": "Fruit",
-      "Description": "A deciduous fruit tree genuinely native to Northwest China, first domesticated there roughly 4,000 years ago, later spreading via Persia to the rest of the world including India.",
-      "Phenology": "Deciduous; showy pink 5-petaled flowers appear in early spring before the leaves, followed by the familiar fuzzy-skinned, single-seeded stone fruit ripening in summer.",
-      "Taxonomy": "Kingdom Plantae; Order Rosales; Family Rosaceae; Subgenus Prunus subg. Amygdalus; Species P. persica.",
-      "EcologicalUses": "Closely related to the almond; commercially grown peach orchards exist in the cooler hill regions of North India such as Himachal Pradesh and parts of Uttarakhand.",
-      "EthnobotanicalUses": "Fruit eaten fresh and used in preserves; peach kernels resemble almonds in flavour and are sometimes used to make a marzipan substitute called persipan; ornamental spring blossom valued in gardens.",
-      "Latitude": 30.3387,
-      "Longitude": 78.0364,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Prunus_persica_flowers.jpg/640px-Prunus_persica_flowers.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Prunus_persica_flowers.jpg/640px-Prunus_persica_flowers.jpg",
-      "SourceNote": "Verified against Wikipedia (Peach) (accessed 2026). Note: native to China, not India, despite the species name persica referring to Persia, an intermediate stop on its spread westward."
-    }
-  },
-  {
-    "id": "s48",
-    "fields": {
-      "CommonName": "Wild Himalayan Cherry",
-      "BotanicalName": "Prunus cerasoides",
-      "Family": "Rosaceae",
-      "Origin": "Native",
-      "UseType": "Ornamental/Medicinal",
-      "Description": "A deciduous cherry tree with its centre of diversity in the Eastern Himalayas, extending west into the Western Himalayas including Uttarakhand, where it is widely revered and grows in temperate forest between 1,200-2,400 m elevation.",
-      "Phenology": "Deciduous; flowers in autumn and winter (October-November in parts of its range), producing pinkish-white hermaphroditic blossoms, followed by small yellow fruit that turns red as it ripens.",
-      "Taxonomy": "Kingdom Plantae; Order Rosales; Family Rosaceae; Subgenus Prunus subg. Cerasus; Species P. cerasoides.",
-      "EcologicalUses": "Grows in Himalayan temperate mixed forests on slopes and valleys with well-drained soils; an important early-season nectar source given its unusual autumn-winter flowering time.",
-      "EthnobotanicalUses": "Bark and seed used in traditional Ayurvedic medicine (known as Padmaka); fruit used to produce a well-known cherry brandy despite being scanty and rarely eaten fresh; wood used for walking sticks; considered a sacred tree in parts of the Himalayan region.",
-      "Latitude": 30.3429,
-      "Longitude": 78.0348,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Prunus_cerasoides_flowers.jpg/640px-Prunus_cerasoides_flowers.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Prunus_cerasoides_flowers.jpg/640px-Prunus_cerasoides_flowers.jpg",
-      "SourceNote": "Verified against Wikipedia (Prunus cerasoides) and PROSEA handbook (accessed 2026)."
-    }
-  },
-  {
-    "id": "s49",
-    "fields": {
-      "CommonName": "Pomelo",
-      "BotanicalName": "Citrus maxima",
-      "Family": "Rutaceae",
-      "Origin": "Exotic",
-      "UseType": "Fruit",
-      "Description": "The largest citrus fruit species, a natural non-hybrid citrus genuinely native to Southeast Asia, cultivated in southern India and elsewhere as an ancestor species behind many modern citrus hybrids.",
-      "Phenology": "Fragrant yellowish-white flowers, borne singly or in clusters, are followed by very large fruit (15-25 cm diameter, 1-2 kg) with a thick rind and sweet, mildly tart pulp.",
-      "Taxonomy": "Kingdom Plantae; Order Sapindales; Family Rutaceae; Genus Citrus; Species C. maxima.",
-      "EcologicalUses": "One of the principal wild ancestor species behind cultivated citrus hybrids including the grapefruit (pomelo x sweet orange) and bitter orange (pomelo x mandarin), making it botanically significant well beyond its own cultivation.",
-      "EthnobotanicalUses": "Fruit eaten fresh, used in salads and desserts, or candied; in parts of Southeast and East Asia associated with festive occasions; rind sometimes made into marmalade.",
-      "Latitude": 30.3395,
-      "Longitude": 78.0326,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Citrus_maxima_fruit.jpg/640px-Citrus_maxima_fruit.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Citrus_maxima_fruit.jpg/640px-Citrus_maxima_fruit.jpg",
-      "SourceNote": "Verified against Wikipedia (Pomelo) (accessed 2026). Note: native to Southeast Asia, not India."
-    }
-  },
-  {
-    "id": "s50",
-    "fields": {
-      "CommonName": "Indian Elm (Kanju)",
-      "BotanicalName": "Holoptelea integrifolia",
-      "Family": "Ulmaceae",
-      "Origin": "Native",
-      "UseType": "Timber/Medicinal",
-      "Description": "A large deciduous tree native to most of the Indian subcontinent, Indo-China and Myanmar, closely related to true elms, found both on plains and in mountains up to 1,100 m elevation.",
-      "Phenology": "Deciduous; small greenish-yellow to brownish flowers appear at the scars of fallen leaves (often around January-February in parts of India), followed by circular winged samara fruit.",
-      "Taxonomy": "Kingdom Plantae; Order Rosales; Family Ulmaceae; Genus Holoptelea; Species H. integrifolia.",
-      "EcologicalUses": "Valued in ecological forestry for its heat and drought tolerance and strong regenerative ability, making it useful for restoring degraded land.",
-      "EthnobotanicalUses": "Used for cheap furniture-grade timber and as rural firewood; flowers, leaves and bark used across various Indian traditional medicine systems for conditions including inflammation, rheumatism and skin ailments.",
-      "Latitude": 30.3366,
-      "Longitude": 78.0356,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Holoptelea_integrifolia_leaves.jpg/640px-Holoptelea_integrifolia_leaves.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Holoptelea_integrifolia_leaves.jpg/640px-Holoptelea_integrifolia_leaves.jpg",
-      "SourceNote": "Verified against Wikipedia (Holoptelea integrifolia) and LUMS Biodiversity database (accessed 2026)."
-    }
-  },
-  {
-    "id": "s51",
-    "fields": {
-      "CommonName": "Hairy Sterculia (Elephant Rope Tree)",
-      "BotanicalName": "Sterculia villosa",
-      "Family": "Malvaceae",
-      "Origin": "Native",
-      "UseType": "Fibre",
-      "Description": "A medium to large deciduous tree native to the Indian subcontinent (particularly Northeast India) as well as parts of southern China and Indo-China, known locally as sardol or udal.",
-      "Phenology": "Deciduous, flowering while leafless; rusty, velvety pendulous flower panicles appear December-March in most of its range, followed by leathery red seed pods.",
-      "Taxonomy": "Kingdom Plantae; Order Malvales; Family Malvaceae; Genus Sterculia; Species S. villosa.",
-      "EcologicalUses": "Fast-spreading and adaptable, sometimes cultivated outside its native range for this trait; found in moist deciduous forest habitats.",
-      "EthnobotanicalUses": "Bark yields a strong, coarse fibre historically used to make ropes and bags, prized for being little damaged by water; pulp used for tea boxes and lightweight packing cases in Northeast India and Bangladesh; powdered root mixed with rice flour in some traditional food preparations.",
-      "Latitude": 30.3378,
-      "Longitude": 78.0367,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Sterculia_villosa_flowers.jpg/640px-Sterculia_villosa_flowers.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Sterculia_villosa_flowers.jpg/640px-Sterculia_villosa_flowers.jpg",
-      "SourceNote": "Verified against Wikipedia (Sterculia villosa) and Kew Plants of the World Online (accessed 2026)."
-    }
-  },
-  {
-    "id": "s52",
-    "fields": {
-      "CommonName": "Gular (Cluster Fig)",
-      "BotanicalName": "Ficus racemosa",
-      "Family": "Moraceae",
-      "Origin": "Native",
-      "UseType": "Ornamental/Religious",
-      "Description": "A fast-growing evergreen to semi-deciduous fig tree native to tropical Asia and Australia, distinctive for its cauliflorous fruiting habit where figs grow in dense clusters directly from the trunk and larger branches.",
-      "Phenology": "Fruits (syconia) grow year-round in clusters on the trunk and branches rather than among the leaves; large, coarse-textured leaves are shed and replaced through the year depending on local conditions.",
-      "Taxonomy": "Kingdom Plantae; Order Rosales; Family Moraceae; Genus Ficus; Subgenus F. subg. Sycomorus; Species F. racemosa.",
-      "EcologicalUses": "Ripe figs are a favourite food of the rhesus macaque and other wildlife; the tree is of cultural importance in Hinduism and Buddhism, where it is known as udumbara.",
-      "EthnobotanicalUses": "Fruits are eaten as a cooked vegetable (after removing seeds) in stir-fries and curries across parts of India; bark is used in traditional home remedies, rubbed into a paste for boils and insect bites.",
-      "Latitude": 30.3384,
-      "Longitude": 78.0369,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Ficus_racemosa_fruit.jpg/640px-Ficus_racemosa_fruit.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Ficus_racemosa_fruit.jpg/640px-Ficus_racemosa_fruit.jpg",
-      "SourceNote": "Verified against Wikipedia (Ficus racemosa) (accessed 2026)."
-    }
-  },
-  {
-    "id": "s53",
-    "fields": {
-      "CommonName": "Gamhar (White Teak)",
-      "BotanicalName": "Gmelina arborea",
-      "Family": "Lamiaceae",
-      "Origin": "Native",
-      "UseType": "Timber",
-      "Description": "A fast-growing deciduous tree native throughout much of India, including the sub-Himalayan tracts, as well as Myanmar, Thailand and southern China, valued as a versatile timber species.",
-      "Phenology": "Deciduous; brownish-yellow flowers appear in terminal panicles February to April; drupe fruits follow, ripening to a shiny yellow when dry.",
-      "Taxonomy": "Kingdom Plantae; Order Lamiales; Family Lamiaceae; Genus Gmelina; Species G. arborea.",
-      "EcologicalUses": "Occurs extensively from the sub-Himalayan tracts eastward through Assam and adjoining regions; commonly grown in gardens and avenues as well as natural mixed forests.",
-      "EthnobotanicalUses": "Timber is strong for its weight, used in construction, furniture, musical instruments and artificial limbs; root and bark used traditionally as a stomachic, laxative and appetite stimulant; leaf paste applied for headache relief.",
-      "Latitude": 30.3358,
-      "Longitude": 78.0347,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Gmelina_arborea_flowers.jpg/640px-Gmelina_arborea_flowers.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Gmelina_arborea_flowers.jpg/640px-Gmelina_arborea_flowers.jpg",
-      "SourceNote": "Verified against Wikipedia (Gmelina arborea) and Vikaspedia medicinal plants database (accessed 2026)."
-    }
-  },
-  {
-    "id": "s54",
-    "fields": {
-      "CommonName": "Parijat (Night Jasmine)",
-      "BotanicalName": "Nyctanthes arbor-tristis",
-      "Family": "Oleaceae",
-      "Origin": "Native",
-      "UseType": "Ornamental/Religious",
-      "Description": "A large shrub or small tree native to the subtropical Himalayas of Nepal and India, and the official state flower of West Bengal, prized for its intensely fragrant night-blooming flowers.",
-      "Phenology": "Fragrant white flowers with an orange-red centre open at dusk and fall by dawn, carpeting the ground with petals each morning; blooms in clusters of two to seven through the flowering season.",
-      "Taxonomy": "Kingdom Plantae; Order Lamiales; Family Oleaceae; Genus Nyctanthes; Species N. arbor-tristis.",
-      "EcologicalUses": "Grows in dry deciduous forests and hillsides across its native range; the flowering pattern has traditionally been used by native communities in Tripura to help predict seasonal rainfall.",
-      "EthnobotanicalUses": "Flowers used to make garlands and for worship in Hindu ritual; leaves used in Ayurvedic medicine and homeopathy for sciatica, arthritis and fever; an orange dye (nyctanthin) extracted from the corolla is used to dye silk.",
-      "Latitude": 30.3369,
-      "Longitude": 78.0362,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Nyctanthes_arbor-tristis_flowers.jpg/640px-Nyctanthes_arbor-tristis_flowers.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Nyctanthes_arbor-tristis_flowers.jpg/640px-Nyctanthes_arbor-tristis_flowers.jpg",
-      "SourceNote": "Verified against Wikipedia (Nyctanthes arbor-tristis) and PROSEA handbook (accessed 2026)."
-    }
-  },
-  {
-    "id": "s55",
-    "fields": {
-      "CommonName": "Broken Bones Tree (Indian Trumpet Tree)",
-      "BotanicalName": "Oroxylum indicum",
-      "Family": "Bignoniaceae",
-      "Origin": "Native",
-      "UseType": "Medicinal",
-      "Description": "A distinctive semi-deciduous tree native to the Indian subcontinent and Himalayan foothills extending to southern China and Southeast Asia, named for its huge sword-like seed pods and the way its shed leaf stalks pile up like broken limb bones at the trunk base.",
-      "Phenology": "Night-blooming, bat-pollinated flowers appear on bare branches; enormous flat seed pods up to 1.5 m long hang down resembling swords, giving rise to the name 'tree of Damocles'.",
-      "Taxonomy": "Kingdom Plantae; Order Lamiales; Family Bignoniaceae; Tribe Oroxyleae; Genus Oroxylum (monotypic); Species O. indicum.",
-      "EcologicalUses": "Night-blooming flowers adapted for pollination by bats; found in the forest biome of Manas National Park, Assam, among other protected Indian habitats.",
-      "EthnobotanicalUses": "Used for centuries in Asian traditional medicine (known as Shyonaka in Ayurveda) for ailments including jaundice, arthritis, gastric ulcers and respiratory disease; young pods are eaten as a delicacy in parts of India and southern China.",
-      "Latitude": 30.3376,
-      "Longitude": 78.0331,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Oroxylum_indicum_pods.jpg/640px-Oroxylum_indicum_pods.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Oroxylum_indicum_pods.jpg/640px-Oroxylum_indicum_pods.jpg",
-      "SourceNote": "Verified against Wikipedia (Oroxylum indicum) and Uttarakhand Forest Department plant database (accessed 2026)."
-    }
-  },
-  {
-    "id": "s56",
-    "fields": {
-      "CommonName": "Bahera",
-      "BotanicalName": "Terminalia bellirica",
-      "Family": "Combretaceae",
-      "Origin": "Native",
-      "UseType": "Medicinal",
-      "Description": "A large deciduous tree common on plains and lower hills across South and Southeast Asia, one of the three fruits making up the classic Ayurvedic formulation triphala.",
-      "Phenology": "Small, pale green, unpleasant-smelling flowers appear April-June; ovoid fruit with hard stones and a sweet oily kernel follows, maturing November-February.",
-      "Taxonomy": "Kingdom Plantae; Order Myrtales; Family Combretaceae; Genus Terminalia; Species T. bellirica.",
-      "EcologicalUses": "Found in deciduous forests throughout India except the most arid regions; considered good fodder for cattle; a significant non-timber forest product in Madhya Pradesh's Malwa region.",
-      "EthnobotanicalUses": "Fruit (bibhitaki) is a core ingredient of triphala, a widely used Ayurvedic herbal formulation; seed oil meets biodiesel specification standards in several countries; some Hindu communities in Northern India traditionally avoid sitting in its shade due to folklore associating it with spirits.",
-      "Latitude": 30.3391,
-      "Longitude": 78.0374,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Terminalia_bellirica_fruit.jpg/640px-Terminalia_bellirica_fruit.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Terminalia_bellirica_fruit.jpg/640px-Terminalia_bellirica_fruit.jpg",
-      "SourceNote": "Verified against Wikipedia (Terminalia bellirica) and a Himalayan Voices botanical fact sheet noting its presence in the Siwaliks near this region (accessed 2026)."
-    }
-  },
-  {
-    "id": "s57",
-    "fields": {
-      "CommonName": "Harad (Chebulic Myrobalan)",
-      "BotanicalName": "Terminalia chebula",
-      "Family": "Combretaceae",
-      "Origin": "Native",
-      "UseType": "Medicinal",
-      "Description": "A medium to large deciduous tree native to South Asia from Pakistan, India and Nepal east to southwest China, one of the most important trees in traditional Ayurvedic medicine.",
-      "Phenology": "Deciduous during the cold season; strongly scented dull white to yellow flowers appear in terminal spikes April-June, followed by five-ridged blackish drupe fruit maturing by winter.",
-      "Taxonomy": "Kingdom Plantae; Order Myrtales; Family Combretaceae; Genus Terminalia; Species T. chebula.",
-      "EcologicalUses": "Found in the outer Himalayas up to about 1,600 m elevation from Kangra (near this region) eastward to Bengal, and throughout central and southern India.",
-      "EthnobotanicalUses": "Fruit (haritaki) is one of the three myrobalans in triphala and is separately used as an astringent digestive aid, mild laxative and gum tonic in Ayurveda; powdered fruit rind used traditionally for loose gums and bleeding gums.",
-      "Latitude": 30.3403,
-      "Longitude": 78.0356,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Terminalia_chebula_fruit.jpg/640px-Terminalia_chebula_fruit.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Terminalia_chebula_fruit.jpg/640px-Terminalia_chebula_fruit.jpg",
-      "SourceNote": "Verified against Wikipedia (Terminalia chebula) and a Himalayan Voices fact sheet noting distribution in the outer Himalayas from Kangra to Bengal (accessed 2026)."
-    }
-  },
-  {
-    "id": "s58",
-    "fields": {
-      "CommonName": "Mahua (Butter Tree)",
-      "BotanicalName": "Madhuca longifolia",
-      "Family": "Sapotaceae",
-      "Origin": "Native",
-      "UseType": "Food/Medicinal",
-      "Description": "A fast-growing tropical tree native to the Indian subcontinent, found across the plains and forests of central, southern and northern India as well as Nepal, Myanmar and Sri Lanka, deeply woven into tribal cultural life across central India.",
-      "Phenology": "Fast-growing with evergreen to semi-evergreen foliage; fragrant white flowers borne in clusters, followed by a fleshy greenish-yellow fruit containing oil-rich seeds.",
-      "Taxonomy": "Kingdom Plantae; Order Ericales; Family Sapotaceae; Genus Madhuca; Species M. longifolia.",
-      "EcologicalUses": "Tolerant of dry, arid environments and a prominent component of tropical mixed deciduous forests across much of India.",
-      "EthnobotanicalUses": "Flowers are fermented into a traditional alcoholic drink and used in various food preparations by tribal communities, for whom the tree carries deep cultural and ritual significance across birth, marriage and death; seed oil used for skin care and soap-making; bark used in traditional remedies for diabetes.",
-      "Latitude": 30.3368,
-      "Longitude": 78.0338,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Madhuca_longifolia_flowers.jpg/640px-Madhuca_longifolia_flowers.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Madhuca_longifolia_flowers.jpg/640px-Madhuca_longifolia_flowers.jpg",
-      "SourceNote": "Verified against Wikipedia (Madhuca longifolia) and a Subharti University plant profile (accessed 2026)."
-    }
-  },
-  {
-    "id": "s59",
-    "fields": {
-      "CommonName": "Nagkesar (Indian Rose Chestnut)",
-      "BotanicalName": "Mesua ferrea",
-      "Family": "Calophyllaceae",
-      "Origin": "Native",
-      "UseType": "Ornamental/Medicinal",
-      "Description": "A medium to fairly large evergreen tree native to Sri Lanka, India, southern Nepal, Myanmar, Indochina, the Philippines, Malaysia and Sumatra, cultivated widely across Asia as an ornamental for its graceful form and fragrant flowers.",
-      "Phenology": "Evergreen; young leaves emerge in a striking flush of pink to red before maturing to dark green; large fragrant white flowers with numerous yellow stamens bloom against the foliage.",
-      "Taxonomy": "Kingdom Plantae; Order Malpighiales; Family Calophyllaceae; Genus Mesua; Species M. ferrea.",
-      "EcologicalUses": "Grows in evergreen forests, especially river valleys, at up to 1,500 m elevation in the Himalayas and India; national tree of Sri Lanka.",
-      "EthnobotanicalUses": "Stamens yield the traditional Ayurvedic drug nagakesara; seed oil used for skin ailments and rheumatism; dried flowers used for bleeding hemorrhoids and dysentery in Ayurvedic and Unani medicine; regarded as a sacred tree in parts of India.",
-      "Latitude": 30.34,
-      "Longitude": 78.0367,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Mesua_ferrea_flowers.jpg/640px-Mesua_ferrea_flowers.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Mesua_ferrea_flowers.jpg/640px-Mesua_ferrea_flowers.jpg",
-      "SourceNote": "Verified against Wikipedia (Mesua ferrea) and Uttarakhand Forest Department plant database (accessed 2026)."
-    }
-  },
-  {
-    "id": "s60",
-    "fields": {
-      "CommonName": "Frangipani (Temple Tree)",
-      "BotanicalName": "Plumeria rubra",
-      "Family": "Apocynaceae",
-      "Origin": "Exotic",
-      "UseType": "Ornamental",
-      "Description": "A deciduous flowering tree genuinely native to Mexico, Central America, Colombia and Venezuela, now one of the most widely planted ornamental trees across tropical and subtropical India, especially near temples and gardens.",
-      "Phenology": "Deciduous; fragrant flowers in shades of pink, white and yellow bloom over summer and autumn, appearing on bare or leafy branches; long paired seed pods (follicles) follow.",
-      "Taxonomy": "Kingdom Plantae; Order Gentianales; Family Apocynaceae; Subtribe Plumeriinae; Genus Plumeria; Species P. rubra.",
-      "EcologicalUses": "Long cultivated far outside its native range as an ornamental; a good host plant for Dendrobium orchids, which are sometimes grown epiphytically on its branches.",
-      "EthnobotanicalUses": "Widely planted near Hindu and Buddhist temples across India ('temple tree') despite not being native; flowers used in garlands; in eastern India, plumeria is traditionally considered a variety of the sacred champak flower.",
-      "Latitude": 30.3382,
-      "Longitude": 78.032,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Plumeria_rubra_flowers.jpg/640px-Plumeria_rubra_flowers.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Plumeria_rubra_flowers.jpg/640px-Plumeria_rubra_flowers.jpg",
-      "SourceNote": "Verified against Wikipedia (Plumeria / Plumeria rubra) (accessed 2026). Note: genuinely native to Mexico/Central America, not India, despite being ubiquitous at Indian temples."
-    }
-  },
-  {
-    "id": "s61",
-    "fields": {
-      "CommonName": "Banj Oak",
-      "BotanicalName": "Quercus leucotrichophora",
-      "Family": "Fagaceae",
-      "Origin": "Native",
-      "UseType": "Timber/Fodder",
-      "Description": "An evergreen oak endemic to the mid-elevation forests of the central and western Himalayas, forming extensive oak forests between roughly 1,000-2,200 m and considered one of the most ecologically important trees of the region.",
-      "Phenology": "Evergreen; leaf shedding, shoot initiation and flowering all occur April-June; acorns mature October-January and disperse December-May.",
-      "Taxonomy": "Kingdom Plantae; Order Fagales; Family Fagaceae; Subgenus Quercus subg. Cerris; Section Quercus sect. Ilex; Species Q. leucotrichophora.",
-      "EcologicalUses": "A keystone species of the mid-Himalayan forest belt, its deep root system helps stabilise slopes and its nitrogen-rich leaf litter builds soil fertility; often grows alongside deodar cedar and chir pine.",
-      "EthnobotanicalUses": "Extensively lopped for fuelwood (high calorific value) and cattle fodder by hill communities; leaf litter used as compost; the species has been directly studied by FRI's own Forest Protection Division for pest management in the Garhwal Himalaya.",
-      "Latitude": 30.3413,
-      "Longitude": 78.0345,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Quercus_leucotrichophora_leaves.jpg/640px-Quercus_leucotrichophora_leaves.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Quercus_leucotrichophora_leaves.jpg/640px-Quercus_leucotrichophora_leaves.jpg",
-      "SourceNote": "Verified against Wikipedia (Quercus leucotrichophora) and a Journal of Threatened Taxa paper co-authored by FRI (ICFRE) Dehradun researchers (accessed 2026)."
-    }
-  },
-  {
-    "id": "s62",
-    "fields": {
-      "CommonName": "Kusum Tree",
-      "BotanicalName": "Schleichera oleosa",
-      "Family": "Sapindaceae",
-      "Origin": "Native",
-      "UseType": "Timber/Oil",
-      "Description": "A large, nearly evergreen tree native to the Indian subcontinent and Southeast Asia, historically important across Madhya Pradesh and the Deccan Plateau, notable for its bright red flush of new leaves.",
-      "Phenology": "Nearly evergreen; new leaves emerge bright red, most conspicuously around March in India; small yellow flowers form in dense clusters, largely inconspicuous.",
-      "Taxonomy": "Kingdom Plantae; Order Sapindales; Family Sapindaceae; Genus Schleichera (monotypic); Species S. oleosa.",
-      "EcologicalUses": "Frost- and drought-hardy; historically one of the main tree species of undisturbed forests in Madhya Pradesh and the Deccan Plateau; host tree for kusumi lac, a lac-producing insect native to India.",
-      "EthnobotanicalUses": "Seeds are the source of kusum (macassar) oil, used in cosmetics and traditional medicine; the tree's role as a lac-insect host made it economically significant for the historic shellac trade; hard reddish-brown wood used for tools and construction.",
-      "Latitude": 30.3357,
-      "Longitude": 78.0353,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Schleichera_oleosa_leaves.jpg/640px-Schleichera_oleosa_leaves.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Schleichera_oleosa_leaves.jpg/640px-Schleichera_oleosa_leaves.jpg",
-      "SourceNote": "Verified against Wikipedia (Schleichera / Kusum oil) (accessed 2026)."
-    }
-  },
-  {
-    "id": "s63",
-    "fields": {
-      "CommonName": "Paradise Tree (Lakshmi Taru)",
-      "BotanicalName": "Simarouba glauca",
-      "Family": "Simaroubaceae",
-      "Origin": "Exotic",
-      "UseType": "Oilseed",
-      "Description": "A flowering tree genuinely native to Florida, South America and the Caribbean, introduced to India in the 20th century and popularly known there as Lakshmi Taru, promoted for wasteland reclamation and biodiesel potential.",
-      "Phenology": "Evergreen; inconspicuous blooms appear in spring, followed by purple, olive-like fruit ripening by summer.",
-      "Taxonomy": "Kingdom Plantae; Order Sapindales; Family Simaroubaceae; Genus Simarouba; Species S. glauca.",
-      "EcologicalUses": "Promoted in India for large-scale wasteland reclamation plantings due to its hardiness and drought tolerance, with claimed benefits for carbon sequestration.",
-      "EthnobotanicalUses": "Seeds produce an edible oil used in India for cooking and industrial purposes; bark, leaves and roots used in traditional medicine across its native range for fevers, dysentery and skin conditions; wood is insect-resistant and used for furniture and matches.",
-      "Latitude": 30.3345,
-      "Longitude": 78.0362,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Simarouba_glauca_fruit.jpg/640px-Simarouba_glauca_fruit.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Simarouba_glauca_fruit.jpg/640px-Simarouba_glauca_fruit.jpg",
-      "SourceNote": "Verified against Wikipedia (Simarouba glauca) (accessed 2026). Note: genuinely native to Florida/Caribbean, not India, despite the popular Sanskrit name Lakshmi Taru given after introduction."
-    }
-  },
-  {
-    "id": "s64",
-    "fields": {
-      "CommonName": "Strychnine Tree (Kuchla)",
-      "BotanicalName": "Strychnos nux-vomica",
-      "Family": "Loganiaceae",
-      "Origin": "Native",
-      "UseType": "Medicinal",
-      "Description": "A deciduous tree native to India and Southeast Asia, notable as the natural botanical source of the highly toxic alkaloid strychnine, historically significant in traditional and Western pharmacology alike.",
-      "Phenology": "Deciduous; small, pale green, foul-smelling funnel-shaped flowers bloom in the cold season, followed by round orange fruit containing the toxic seeds.",
-      "Taxonomy": "Kingdom Plantae; Order Gentianales; Family Loganiaceae; Genus Strychnos; Species S. nux-vomica.",
-      "EcologicalUses": "Grows in open habitats across its native range; a medium-sized tree with a short, thick trunk and irregular, ash-barked branches.",
-      "EthnobotanicalUses": "Seeds (kuchla) are used in minute, carefully controlled doses in traditional Ayurvedic and Unani medicine as a nervine and digestive tonic, but are extremely poisonous in excess; historically the primary source of strychnine, once used medically and later as a rodenticide. Given its toxicity, this tree is documented here for educational and taxonomic purposes only.",
-      "Latitude": 30.3372,
-      "Longitude": 78.0349,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Strychnos_nux-vomica_fruit.jpg/640px-Strychnos_nux-vomica_fruit.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Strychnos_nux-vomica_fruit.jpg/640px-Strychnos_nux-vomica_fruit.jpg",
-      "SourceNote": "Verified against Wikipedia (Strychnos nux-vomica) (accessed 2026)."
-    }
-  },
-  {
-    "id": "s65",
-    "fields": {
-      "CommonName": "West Indian Mahogany",
-      "BotanicalName": "Swietenia mahagoni",
-      "Family": "Meliaceae",
-      "Origin": "Exotic",
-      "UseType": "Timber",
-      "Description": "A large evergreen to semi-deciduous tree genuinely native to the Caribbean islands and southern Florida, the original source of true mahogany timber, now cultivated as a plantation tree in parts of India including Kerala.",
-      "Phenology": "Briefly deciduous; small, fragrant, inconspicuous flowers appear in spring, followed by woody capsules containing winged seeds that mature by late summer/fall.",
-      "Taxonomy": "Kingdom Plantae; Order Sapindales; Family Meliaceae; Genus Swietenia; Species S. mahagoni.",
-      "EcologicalUses": "Grows in dry forests, coastal areas and pine rocklands in its native range; listed as Near Threatened due to historic overharvesting for the timber trade.",
-      "EthnobotanicalUses": "Prized dense, reddish-brown wood polishes to a high sheen and is used for fine furniture, cabinetry and musical instruments; grown as a plantation timber species and sold in timber markets in Kerala, India, despite not being native to the country.",
-      "Latitude": 30.339,
-      "Longitude": 78.0332,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Swietenia_mahagoni_leaves.jpg/640px-Swietenia_mahagoni_leaves.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Swietenia_mahagoni_leaves.jpg/640px-Swietenia_mahagoni_leaves.jpg",
-      "SourceNote": "Verified against Wikipedia (Swietenia mahagoni) (accessed 2026). Note: genuinely native to the Caribbean/Florida, not India."
-    }
-  },
-  {
-    "id": "s66",
-    "fields": {
-      "CommonName": "Indian Rosewood (Sitsal)",
-      "BotanicalName": "Dalbergia latifolia",
-      "Family": "Fabaceae",
-      "Origin": "Native",
-      "UseType": "Timber",
-      "Description": "A premier timber tree native to low-elevation tropical monsoon forests of India, extending from the sub-Himalayan tract near this region eastward to Sikkim and throughout central and southern India, prized as one of the world's finest cabinet-making woods.",
-      "Phenology": "Evergreen on wet sites, locally deciduous in drier populations; small white flowers form in axillary panicles, followed by flat, pointed brown pods.",
-      "Taxonomy": "Kingdom Plantae; Order Fabales; Family Fabaceae; Subfamily Faboideae; Genus Dalbergia; Species D. latifolia.",
-      "EcologicalUses": "Grows in dry deciduous forests throughout the Indian peninsula and the sub-Himalayan tract, tolerant of a wide range of soils; classified as Vulnerable due to overharvesting for timber.",
-      "EthnobotanicalUses": "One of the world's most valuable cabinetry and furniture timbers, used for musical instrument cases, decorative veneer and shipbuilding interiors; bark tannins used medicinally and as an appetiser in some traditional preparations.",
-      "Latitude": 30.3406,
-      "Longitude": 78.0361,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Dalbergia_latifolia_leaves.jpg/640px-Dalbergia_latifolia_leaves.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Dalbergia_latifolia_leaves.jpg/640px-Dalbergia_latifolia_leaves.jpg",
-      "SourceNote": "Verified against Wikipedia (Dalbergia latifolia) and World Agroforestry Centre database, which notes distribution in the sub-Himalayan tract near this region (accessed 2026)."
-    }
-  },
-  {
-    "id": "s67",
-    "fields": {
-      "CommonName": "Kachnar (Purple Orchid Tree)",
-      "BotanicalName": "Bauhinia purpurea",
-      "Family": "Fabaceae",
-      "Origin": "Native",
-      "UseType": "Ornamental/Medicinal",
-      "Description": "A small to medium deciduous tree native to the Indian subcontinent and Myanmar, widely introduced elsewhere in the tropics, valued for its showy purple-pink orchid-like flowers.",
-      "Phenology": "Deciduous; conspicuous, fragrant pink to purple flowers with five petals bloom typically October-December, followed by long flat seed pods with 12-16 seeds.",
-      "Taxonomy": "Kingdom Plantae; Order Fabales; Family Fabaceae; Genus Bauhinia; Species B. purpurea.",
-      "EcologicalUses": "Fast-growing and adaptable to disturbed areas; flowers provide nectar for pollinators during the cooler months when fewer trees are in bloom.",
-      "EthnobotanicalUses": "Young leaves and flowers are edible and used as a souring agent in some regional cuisines; leaves used in Indian traditional medicine to treat coughs, bark used for glandular conditions and as an antidote for certain poisons.",
-      "Latitude": 30.3364,
-      "Longitude": 78.0367,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Bauhinia_purpurea_flowers.jpg/640px-Bauhinia_purpurea_flowers.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Bauhinia_purpurea_flowers.jpg/640px-Bauhinia_purpurea_flowers.jpg",
-      "SourceNote": "Verified against Wikipedia (Bauhinia purpurea) and LUMS Biodiversity database (accessed 2026)."
-    }
-  },
-  {
-    "id": "s68",
-    "fields": {
-      "CommonName": "European Pear",
-      "BotanicalName": "Pyrus communis",
-      "Family": "Rosaceae",
-      "Origin": "Exotic",
-      "UseType": "Fruit",
-      "Description": "A deciduous fruit tree genuinely native to central and eastern Europe and southwest Asia, the ancestor species of most commercially grown pear cultivars worldwide, cultivated in the cooler hill regions of India.",
-      "Phenology": "Deciduous; white five-petaled flowers cluster in spring, followed by the familiar teardrop-shaped pome fruit that requires winter chilling to fruit well.",
-      "Taxonomy": "Kingdom Plantae; Order Rosales; Family Rosaceae; Genus Pyrus; Species P. communis.",
-      "EcologicalUses": "Requires temperate winter chilling, restricting cultivation in India largely to Himalayan hill regions with cold winters, such as Himachal Pradesh, Kashmir and parts of Uttarakhand.",
-      "EthnobotanicalUses": "Fruit widely eaten fresh or processed; fermented pear juice is known as perry; wood historically used for wind instruments, furniture and fine carving.",
-      "Latitude": 30.3418,
-      "Longitude": 78.0338,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Pyrus_communis_fruit.jpg/640px-Pyrus_communis_fruit.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Pyrus_communis_fruit.jpg/640px-Pyrus_communis_fruit.jpg",
-      "SourceNote": "Verified against Wikipedia (Pyrus communis) (accessed 2026). Note: genuinely native to Europe/southwest Asia, not India; commercially grown only in Himalayan hill regions."
-    }
-  },
-  {
-    "id": "s69",
-    "fields": {
-      "CommonName": "Iron Wood of Burma (Jamba)",
-      "BotanicalName": "Xylia xylocarpa",
-      "Family": "Fabaceae",
-      "Origin": "Native",
-      "UseType": "Timber/Medicinal",
-      "Description": "A large deciduous hardwood tree native to India, Bangladesh, Myanmar, Cambodia, Laos, Thailand and Vietnam, valued across South and Southeast Asia for its exceptionally hard, dense timber.",
-      "Phenology": "Deciduous; very conspicuous bright yellow flower heads bloom in the flowering season, followed by hard, woody, boomerang-shaped pods that split open with an audible crack in the dry season.",
-      "Taxonomy": "Kingdom Plantae; Order Fabales; Family Fabaceae; Subfamily Caesalpinioideae; Clade Mimosoid clade; Genus Xylia; Species X. xylocarpa.",
-      "EcologicalUses": "Found in tropical moist deciduous forest across a wide swath of India (recorded from Andhra Pradesh to West Bengal); occasionally naturalised in parts of East Africa.",
-      "EthnobotanicalUses": "Considered a medicinal plant in India; seeds are edible and traditionally eaten by village children; in Thailand its leaves are used to treat wounds in elephants; wood pulp used to make wrapping paper; extremely hard, dense timber (Janka hardness ~2250 lbf) used for construction and cart-making.",
-      "Latitude": 30.3383,
-      "Longitude": 78.0374,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Xylia_xylocarpa_flowers.jpg/640px-Xylia_xylocarpa_flowers.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Xylia_xylocarpa_flowers.jpg/640px-Xylia_xylocarpa_flowers.jpg",
-      "SourceNote": "Verified against Wikipedia (Xylia xylocarpa) and Kew Plants of the World Online (accessed 2026)."
-    }
-  },
-  {
-    "id": "s70",
-    "fields": {
-      "CommonName": "Fragrant Padri Tree (Parul)",
-      "BotanicalName": "Stereospermum chelonoides",
-      "Family": "Bignoniaceae",
-      "Origin": "Native",
-      "UseType": "Ornamental/Timber",
-      "Description": "A deciduous tree native to South and Southeast Asia including India, the Western Himalaya and the moist deciduous forests of the Western Ghats, celebrated in Bengali literature and considered sacred in Theravada Buddhism.",
-      "Phenology": "Deciduous; large, lax panicles of fragrant pinkish flowers with yellow throats bloom in the early summer, followed by long cylindrical ribbed seed pods.",
-      "Taxonomy": "Kingdom Plantae; Order Lamiales; Family Bignoniaceae; Genus Stereospermum; Species S. chelonoides.",
-      "EcologicalUses": "Found in tropical Himalayan forests, Assam, Meghalaya and the moist deciduous forests of the Western Ghats; now considered endangered in parts of its range such as Bangladesh.",
-      "EthnobotanicalUses": "In Theravada Buddhism, the tree is said to be the Bodhi tree under which two past Buddhas achieved enlightenment; valuable timber historically used for boat-building; mentioned extensively in classical Sanskrit and Bengali literature as Patala or Parul.",
-      "Latitude": 30.3399,
-      "Longitude": 78.0343,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Stereospermum_chelonoides_flowers.jpg/640px-Stereospermum_chelonoides_flowers.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Stereospermum_chelonoides_flowers.jpg/640px-Stereospermum_chelonoides_flowers.jpg",
-      "SourceNote": "Verified against Wikipedia (Stereospermum chelonoides) and Kew Plants of the World Online, which lists West Himalaya within its native range (accessed 2026)."
-    }
-  },
-  {
-    "id": "s71",
-    "fields": {
-      "CommonName": "Haldu (Yellow Teak)",
-      "BotanicalName": "Haldina cordifolia",
-      "Family": "Rubiaceae",
-      "Origin": "Native",
-      "UseType": "Timber/Medicinal",
-      "Description": "A deciduous tree native to southern Asia from India east to Yunnan and Vietnam and south to Peninsular Malaysia, valued as a promising timber species and long used in traditional medicine, the sole species in its genus.",
-      "Phenology": "Deciduous; yellow flowers often tinged pink bloom together in attractive rounded inflorescences during winter (the dry season) despite being individually inconspicuous.",
-      "Taxonomy": "Kingdom Plantae; Order Gentianales; Family Rubiaceae; Genus Haldina (monotypic); Species H. cordifolia.",
-      "EcologicalUses": "Occurs frequently but scattered in deciduous forest across lowland and lower hill habitats, often associated with teak in Myanmar and Thailand.",
-      "EthnobotanicalUses": "Bark used traditionally as an antiseptic and febrifuge, with root infusions used for diarrhoea and dysentery and leaf juice for boils and eye disorders; wood valued for house construction, boat building, furniture and fine turnery including piano keys.",
-      "Latitude": 30.3361,
-      "Longitude": 78.0339,
-      "CoverImageURL": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Haldina_cordifolia_flowers.jpg/640px-Haldina_cordifolia_flowers.jpg",
-      "GalleryImageURLs": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Haldina_cordifolia_flowers.jpg/640px-Haldina_cordifolia_flowers.jpg",
-      "SourceNote": "Verified against Wikipedia (Haldina cordifolia / Adina cordifolia) and PROSEA handbook (accessed 2026)."
-    }
-  }
+/* ---------------------------------------------------------------------------
+   Species data now comes from species.csv, sitting alongside this file in
+   the same folder/repo. Add a row to add a species. Fill in Latitude and
+   Longitude to place it on the map. Fill in CoverImageURL with a real
+   direct image link to use a specific photo for that species — leave it
+   blank and the site automatically finds a real Wikipedia photo instead.
+
+   FALLBACK_SPECIES below is only used if species.csv can't be loaded (for
+   example, if you're double-clicking this file locally rather than
+   viewing it through GitHub Pages, since browsers block a local page from
+   fetching another local file). It keeps the page from looking broken in
+   that situation, but your real data always comes from species.csv once
+   the site is live.
+   ------------------------------------------------------------------------- */
+const FALLBACK_SPECIES = [
+  { id: "fallback-1", fields: {
+    CommonName: "Sal", BotanicalName: "Shorea robusta", Family: "Dipterocarpaceae",
+    Origin: "Native", UseType: "Timber",
+    Description: "A large deciduous tree native to India, Bangladesh, Nepal and the Himalayan foothills, historically one of the dominant forest species of the Indian subcontinent.",
+    Phenology: "Deciduous; flowering generally occurs in spring.",
+    Taxonomy: "Kingdom Plantae; Order Malvales; Family Dipterocarpaceae; Genus Shorea.",
+    EcologicalUses: "Forms the dominant canopy of sal forest ecosystems across the Himalayan foothills.",
+    EthnobotanicalUses: "Wood used for construction; leaves used for leaf plates; bark and resin used in traditional medicine.",
+    Latitude: 30.3398, Longitude: 78.0349, CoverImageURL: "",
+    SourceNote: "Built-in sample shown only when species.csv can't be reached." }},
+  { id: "fallback-2", fields: {
+    CommonName: "Teak", BotanicalName: "Tectona grandis", Family: "Lamiaceae",
+    Origin: "Native", UseType: "Timber",
+    Description: "A large deciduous hardwood tree native to south and southeast Asia, source of one of the world's most valuable timbers.",
+    Phenology: "Fragrant white flowers bloom June to August.",
+    Taxonomy: "Kingdom Plantae; Order Lamiales; Family Lamiaceae; Genus Tectona.",
+    EcologicalUses: "Component of monsoon forest vegetation.",
+    EthnobotanicalUses: "Highly durable timber used for boat-building, furniture and construction.",
+    Latitude: 30.3385, Longitude: 78.0342, CoverImageURL: "",
+    SourceNote: "Built-in sample shown only when species.csv can't be reached." }},
 ];
+
+function loadSpeciesFromCsv(onDone) {
+  if (typeof Papa === "undefined") { onDone(FALLBACK_SPECIES, "error"); return; }
+  Papa.parse(CONFIG.SPECIES_CSV_PATH, {
+    download: true,
+    header: true,
+    skipEmptyLines: true,
+    complete: function (results) {
+      const rows = (results && results.data) || [];
+      const records = rows
+        .filter(function (r) { return r.CommonName && r.CommonName.trim(); })
+        .map(function (r, i) {
+          return {
+            id: "row" + i,
+            fields: Object.assign({}, r, {
+              Latitude: r.Latitude && r.Latitude.trim() !== "" ? parseFloat(r.Latitude) : null,
+              Longitude: r.Longitude && r.Longitude.trim() !== "" ? parseFloat(r.Longitude) : null,
+            }),
+          };
+        });
+      if (records.length > 0) {
+        onDone(records, "loaded");
+      } else {
+        onDone(FALLBACK_SPECIES, "error");
+      }
+    },
+    error: function () {
+      onDone(FALLBACK_SPECIES, "error");
+    },
+  });
+}
+
 
 
 async function submitSuggestion(name, message) {
@@ -1504,14 +152,15 @@ const wikiImageCache = {};
 
 function useWikiImage(title) {
   const [state, setState] = useState(() => {
-    if (title && wikiImageCache[title] !== undefined) {
+    if (!title) return { url: null, status: "idle" };
+    if (wikiImageCache[title] !== undefined) {
       return { url: wikiImageCache[title], status: wikiImageCache[title] ? "loaded" : "failed" };
     }
     return { url: null, status: "loading" };
   });
 
   useEffect(() => {
-    if (!title) { setState({ url: null, status: "failed" }); return; }
+    if (!title) { setState({ url: null, status: "idle" }); return; }
     if (wikiImageCache[title] !== undefined) {
       setState({ url: wikiImageCache[title], status: wikiImageCache[title] ? "loaded" : "failed" });
       return;
@@ -1540,10 +189,24 @@ function useWikiImage(title) {
   return state;
 }
 
-function SpeciesImage({ title, alt, style }) {
-  const { url, status } = useWikiImage(title);
-  if (status === "loaded" && url) {
-    return <img src={url} alt={alt} style={style} loading="lazy" />;
+function SpeciesImage({ title, overrideUrl, alt, style }) {
+  const [overrideFailed, setOverrideFailed] = useState(false);
+  const hasOverride = overrideUrl && overrideUrl.trim() !== "" && !overrideFailed;
+  const wiki = useWikiImage(hasOverride ? null : title);
+
+  if (hasOverride) {
+    return (
+      <img
+        src={overrideUrl}
+        alt={alt}
+        style={style}
+        loading="lazy"
+        onError={() => setOverrideFailed(true)}
+      />
+    );
+  }
+  if (wiki.status === "loaded" && wiki.url) {
+    return <img src={wiki.url} alt={alt} style={style} loading="lazy" />;
   }
   return (
     <div style={{
@@ -1558,7 +221,7 @@ function SpeciesImage({ title, alt, style }) {
       fontSize: "0.72rem",
       color: "#8A9880",
     }}>
-      {status === "loading" ? "Loading photo…" : "Photo not available"}
+      {wiki.status === "loading" ? "Loading photo…" : "Photo not available"}
     </div>
   );
 }
@@ -1753,7 +416,7 @@ function ExplorePage({ species, onOpenSpecies }) {
                 onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = "0 10px 24px rgba(27,43,30,0.1)"; }}
                 onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
                 <div style={{ height: "150px", overflow: "hidden" }}>
-                  <SpeciesImage title={f.BotanicalName} alt={f.CommonName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  <SpeciesImage title={f.BotanicalName} overrideUrl={f.CoverImageURL} alt={f.CommonName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 </div>
                 <div style={{ padding: "14px 16px 18px" }}>
                   <div style={{ marginBottom: "8px" }}><OriginTag origin={f.Origin} /></div>
@@ -1786,6 +449,7 @@ function SpeciesDetailPage({ record, onBack, onViewOnMap }) {
       <div style={{ marginBottom: "36px" }}>
         <SpeciesImage
           title={f.BotanicalName}
+          overrideUrl={f.CoverImageURL}
           alt={f.CommonName}
           style={{ width: "100%", height: "380px", objectFit: "cover", borderRadius: "6px", border: "1px solid #E3DCC9" }}
         />
@@ -1900,7 +564,7 @@ function MapPage({ species, focusedId }) {
           {selected ? (
             <>
               <div style={{ marginBottom: "12px" }}>
-                <SpeciesImage title={selected.fields.BotanicalName} alt={selected.fields.CommonName} style={{ width: "100%", height: "120px", objectFit: "cover", borderRadius: "6px" }} />
+                <SpeciesImage title={selected.fields.BotanicalName} overrideUrl={selected.fields.CoverImageURL} alt={selected.fields.CommonName} style={{ width: "100%", height: "120px", objectFit: "cover", borderRadius: "6px" }} />
               </div>
               <div style={{ marginBottom: "6px" }}><OriginTag origin={selected.fields.Origin} /></div>
               <h3 style={{ fontFamily: "Lora, serif", fontSize: "1.1rem", color: "#1B2B1E", margin: "4px 0 2px" }}>{selected.fields.CommonName}</h3>
@@ -1922,7 +586,15 @@ function App() {
   const [page, setPage] = useState("home");
   const [selectedSpecies, setSelectedSpecies] = useState(null);
   const [mapFocusId, setMapFocusId] = useState(null);
-  const species = SPECIES_DATA;
+  const [species, setSpecies] = useState(FALLBACK_SPECIES);
+  const [loadState, setLoadState] = useState("loading"); // loading | loaded | error
+
+  useEffect(() => {
+    loadSpeciesFromCsv(function (records, status) {
+      setSpecies(records);
+      setLoadState(status);
+    });
+  }, []);
 
   const openSpecies = useCallback((record) => { setSelectedSpecies(record); setPage("detail"); window.scrollTo(0, 0); }, []);
   const viewOnMap = useCallback((record) => { setMapFocusId(record.id); setPage("map"); window.scrollTo(0, 0); }, []);
@@ -1931,7 +603,14 @@ function App() {
   return (
     <div style={{ fontFamily: "Inter, sans-serif", background: "#F6F2E9", minHeight: "100vh" }}>
       <NavBar page={page === "detail" ? "explore" : page} setPage={goTo} />
-      {page === "home" ? (
+      {loadState === "error" && (
+        <div style={{ background: "#F7EBE6", borderBottom: "1px solid #E3C4B5", padding: "9px 24px", textAlign: "center", fontFamily: "Inter, sans-serif", fontSize: "0.8rem", color: "#8A3A28" }}>
+          Couldn't load species.csv — showing sample data. Make sure species.csv is uploaded in the same folder as this page.
+        </div>
+      )}
+      {loadState === "loading" ? (
+        <div style={{ padding: "120px 24px", textAlign: "center", color: "#6B7A63", fontFamily: "Inter, sans-serif" }}>Loading species records…</div>
+      ) : page === "home" ? (
         <HomePage speciesCount={species.length} setPage={goTo} />
       ) : page === "explore" ? (
         <ExplorePage species={species} onOpenSpecies={openSpecies} />
