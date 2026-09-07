@@ -1774,7 +1774,7 @@ function MapPage({ species, focusedId }) {
   // Initialize the Leaflet map once on mount.
   useEffect(() => {
     if (!mapContainerRef.current || mapInstanceRef.current) return;
-    const map = L.map(mapContainerRef.current, { scrollWheelZoom: true }).setView([30.3398, 78.0349], 16);
+    const map = L.map(mapContainerRef.current, { scrollWheelZoom: true }).setView([30.34287, 77.99851], 16);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
