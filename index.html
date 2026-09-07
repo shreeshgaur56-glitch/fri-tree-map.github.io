@@ -50,7 +50,7 @@ const {useState, useEffect, useMemo, useCallback, useRef} = React;
 
 const CONFIG = {
   SUGGESTION_EMAIL: "gaursaab66@gmail.com",
-  FORMSPREE_ENDPOINT: "https://formspree.io/f/mdeolqwp",
+  FORMSPREE_ENDPOINT: "https://formspree.io/f/YOUR_FORM_ID",
   HERO_IMAGE: "hero.jpg",
   SPECIES_CSV_PATH: "species.csv",
 };
@@ -72,7 +72,7 @@ const CONFIG = {
 const FALLBACK_SPECIES = [
   { id: "fallback-1", fields: {
     CommonName: "Sal", BotanicalName: "Shorea robusta", Family: "Dipterocarpaceae",
-    Origin: "Native", UseType: "Timber",
+    Origin: "Native", PotentialUse: "Timber",
     Description: "A large deciduous tree native to India, Bangladesh, Nepal and the Himalayan foothills, historically one of the dominant forest species of the Indian subcontinent.",
     Phenology: "Deciduous; flowering generally occurs in spring.",
     Taxonomy: "Kingdom Plantae; Order Malvales; Family Dipterocarpaceae; Genus Shorea.",
@@ -82,7 +82,7 @@ const FALLBACK_SPECIES = [
     SourceNote: "Built-in sample shown only when species.csv can't be reached." }},
   { id: "fallback-2", fields: {
     CommonName: "Teak", BotanicalName: "Tectona grandis", Family: "Lamiaceae",
-    Origin: "Native", UseType: "Timber",
+    Origin: "Native", PotentialUse: "Timber",
     Description: "A large deciduous hardwood tree native to south and southeast Asia, source of one of the world's most valuable timbers.",
     Phenology: "Fragrant white flowers bloom June to August.",
     Taxonomy: "Kingdom Plantae; Order Lamiales; Family Lamiaceae; Genus Tectona.",
@@ -364,14 +364,90 @@ function HomePage({ speciesCount, setPage }) {
   );
 }
 
+const POTENTIAL_USE_OPTIONS = [
+  "Aromatic", "Essential oil", "Fodder", "Food", "Invasive", "Medicinal",
+  "Ornamental", "Paper making", "Sacred / Socio-cultural", "Shade tree",
+  "Soil water conservation", "Timber", "Wild Edible",
+];
+
+function PotentialUseFilter({ selected, onChange }) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (containerRef.current && !containerRef.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const visibleOptions = POTENTIAL_USE_OPTIONS.filter((opt) =>
+    opt.toLowerCase().includes(search.trim().toLowerCase())
+  );
+
+  const toggleOption = (opt) => {
+    if (selected.includes(opt)) onChange(selected.filter((o) => o !== opt));
+    else onChange([...selected, opt]);
+  };
+
+  const selectStyle = { fontFamily: "Inter, sans-serif", fontSize: "0.88rem", padding: "9px 12px", borderRadius: "5px", border: "1px solid #D6CEB4", background: "#FFFDF7", color: "#3A4739" };
+
+  return (
+    <div ref={containerRef} style={{ position: "relative" }}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        style={{ ...selectStyle, cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", justifyContent: "space-between", minWidth: "170px" }}
+      >
+        <span>Potential Use{selected.length > 0 ? ` (${selected.length})` : ""}</span>
+        <span style={{ fontSize: "0.7rem" }}>{open ? "▲" : "▼"}</span>
+      </button>
+      {open && (
+        <div style={{
+          position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 30,
+          background: "#FFFDF7", border: "1px solid #D6CEB4", borderRadius: "8px",
+          boxShadow: "0 10px 24px rgba(27,43,30,0.15)", width: "240px", maxHeight: "320px",
+          display: "flex", flexDirection: "column", overflow: "hidden",
+        }}>
+          <div style={{ padding: "10px", borderBottom: "1px solid #E3DCC9" }}>
+            <input
+              type="text" placeholder="Search" value={search} onChange={(e) => setSearch(e.target.value)}
+              autoFocus
+              style={{ width: "100%", fontFamily: "Inter, sans-serif", fontSize: "0.85rem", padding: "7px 10px", borderRadius: "5px", border: "1px solid #D6CEB4", outline: "none" }}
+            />
+          </div>
+          <div style={{ overflowY: "auto", padding: "6px 0" }}>
+            {visibleOptions.length === 0 ? (
+              <div style={{ padding: "10px 14px", fontFamily: "Inter, sans-serif", fontSize: "0.82rem", color: "#8A9880" }}>No matches</div>
+            ) : visibleOptions.map((opt) => (
+              <label key={opt} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 14px", cursor: "pointer", fontFamily: "Inter, sans-serif", fontSize: "0.88rem", color: "#2E3B28" }}>
+                <input type="checkbox" checked={selected.includes(opt)} onChange={() => toggleOption(opt)} style={{ accentColor: "#4A6741", width: "15px", height: "15px" }} />
+                {opt}
+              </label>
+            ))}
+          </div>
+          {selected.length > 0 && (
+            <button
+              onClick={() => onChange([])}
+              style={{ fontFamily: "Inter, sans-serif", fontSize: "0.8rem", color: "#A6452F", background: "none", border: "none", borderTop: "1px solid #E3DCC9", padding: "9px 14px", textAlign: "left", cursor: "pointer" }}
+            >
+              Clear all
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ExplorePage({ species, onOpenSpecies }) {
   const [query, setQuery] = useState("");
   const [family, setFamily] = useState("All");
   const [origin, setOrigin] = useState("All");
-  const [useType, setUseType] = useState("All");
+  const [selectedUses, setSelectedUses] = useState([]);
 
   const families = useMemo(() => ["All", ...new Set(species.map((s) => s.fields.Family).filter(Boolean))].sort(), [species]);
-  const useTypes = useMemo(() => ["All", ...new Set(species.map((s) => s.fields.UseType).filter(Boolean))].sort(), [species]);
 
   const filtered = species.filter((s) => {
     const f = s.fields;
@@ -379,7 +455,8 @@ function ExplorePage({ species, onOpenSpecies }) {
     const matchesQuery = !q || (f.CommonName || "").toLowerCase().includes(q) || (f.BotanicalName || "").toLowerCase().includes(q);
     const matchesFamily = family === "All" || f.Family === family;
     const matchesOrigin = origin === "All" || f.Origin === origin;
-    const matchesUse = useType === "All" || f.UseType === useType;
+    const speciesUses = (f.PotentialUse || "").split(",").map((u) => u.trim()).filter(Boolean);
+    const matchesUse = selectedUses.length === 0 || selectedUses.some((u) => speciesUses.includes(u));
     return matchesQuery && matchesFamily && matchesOrigin && matchesUse;
   });
 
@@ -398,9 +475,7 @@ function ExplorePage({ species, onOpenSpecies }) {
         <select value={origin} onChange={(e) => setOrigin(e.target.value)} style={selectStyle}>
           {["All", "Native", "Exotic"].map((o) => <option key={o} value={o}>{o === "All" ? "All origins" : o}</option>)}
         </select>
-        <select value={useType} onChange={(e) => setUseType(e.target.value)} style={selectStyle}>
-          {useTypes.map((u) => <option key={u} value={u}>{u === "All" ? "All uses" : u}</option>)}
-        </select>
+        <PotentialUseFilter selected={selectedUses} onChange={setSelectedUses} />
       </div>
 
       {filtered.length === 0 ? (
@@ -433,11 +508,35 @@ function ExplorePage({ species, onOpenSpecies }) {
   );
 }
 
+function GalleryImageCell({ label, url, alt }) {
+  const [failed, setFailed] = useState(false);
+  if (!url || !url.trim() || failed) return null;
+  return (
+    <div>
+      <img
+        src={url}
+        alt={alt}
+        style={{ width: "100%", height: "140px", objectFit: "cover", borderRadius: "6px", border: "1px solid #E3DCC9" }}
+        loading="lazy"
+        onError={() => setFailed(true)}
+      />
+      <div style={{ fontFamily: "Inter, sans-serif", fontSize: "0.72rem", color: "#8A9880", marginTop: "4px", textAlign: "center" }}>{label}</div>
+    </div>
+  );
+}
+
 function SpeciesDetailPage({ record, onBack, onViewOnMap }) {
   const f = record.fields;
   const sectionStyle = { marginBottom: "28px" };
   const labelStyle = { fontFamily: "Inter, sans-serif", fontSize: "0.72rem", letterSpacing: "0.04em", color: "#8A9880", marginBottom: "6px", fontWeight: 600 };
   const bodyStyle = { fontFamily: "Inter, sans-serif", fontSize: "0.96rem", color: "#2E3B28", lineHeight: 1.65 };
+
+  const galleryItems = [
+    { label: "Flower", url: f.FlowerImageURL },
+    { label: "Fruit", url: f.FruitImageURL },
+    { label: "Leaf", url: f.LeafImageURL },
+    { label: "Bark", url: f.BarkImageURL },
+  ].filter((item) => item.url && item.url.trim());
 
   return (
     <div style={{ maxWidth: "980px", margin: "0 auto", padding: "40px 24px 80px" }}>
@@ -446,7 +545,7 @@ function SpeciesDetailPage({ record, onBack, onViewOnMap }) {
       <h1 style={{ fontFamily: "Lora, serif", fontSize: "2.2rem", color: "#1B2B1E", margin: "8px 0 2px" }}>{f.CommonName}</h1>
       <p style={{ fontFamily: "Inter, sans-serif", fontStyle: "italic", fontSize: "1.05rem", color: "#7A8873", marginBottom: "24px" }}>{f.BotanicalName} · {f.Family}</p>
 
-      <div style={{ marginBottom: "36px" }}>
+      <div style={{ marginBottom: galleryItems.length > 0 ? "12px" : "36px" }}>
         <SpeciesImage
           title={f.BotanicalName}
           overrideUrl={f.CoverImageURL}
@@ -454,6 +553,16 @@ function SpeciesDetailPage({ record, onBack, onViewOnMap }) {
           style={{ width: "100%", height: "380px", objectFit: "cover", borderRadius: "6px", border: "1px solid #E3DCC9" }}
         />
       </div>
+
+      {galleryItems.length > 0 && (
+        <div style={{ marginBottom: "36px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "10px" }}>
+            {galleryItems.map((item, i) => (
+              <GalleryImageCell key={i} label={item.label} url={item.url} alt={`${f.CommonName} — ${item.label}`} />
+            ))}
+          </div>
+        </div>
+      )}
 
       <button onClick={() => onViewOnMap(record)} style={{ fontFamily: "Inter, sans-serif", fontWeight: 600, fontSize: "0.9rem", padding: "12px 22px", borderRadius: "5px", border: "none", cursor: "pointer", background: "#4A6741", color: "#F6F2E9", marginBottom: "40px" }}>
         View location on campus map
@@ -495,7 +604,7 @@ function MapPage({ species, focusedId }) {
   // Initialize the Leaflet map once on mount.
   useEffect(() => {
     if (!mapContainerRef.current || mapInstanceRef.current) return;
-    const map = L.map(mapContainerRef.current, { scrollWheelZoom: true }).setView([30.34287, 77.99851], 16);
+    const map = L.map(mapContainerRef.current, { scrollWheelZoom: true }).setView([30.3398, 78.0349], 16);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
